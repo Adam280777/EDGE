@@ -1,4 +1,4 @@
-"""Synthetic engine acceptance and explicit SEC metadata research; no live trading."""
+"""Synthetic acceptance, explicit SEC metadata and local notes; no live trading."""
 
 from __future__ import annotations
 
@@ -90,7 +90,10 @@ html, body {
   line-height: 1.4;
 }
 [data-testid="stCaptionContainer"],
-[data-testid="stCaptionContainer"] p { color: var(--edge-muted); }
+[data-testid="stCaptionContainer"] p {
+  color: var(--edge-muted);
+  opacity: 1;
+}
 [data-testid="stCaptionContainer"] p { font-size: 0.8rem; }
 [data-testid="stMetric"] {
   padding: 0.35rem 0;
@@ -382,11 +385,11 @@ def main(output_dir: Path | None = None) -> None:
     st.markdown(f"<style>{_TERMINAL_CSS}</style>", unsafe_allow_html=True)
     st.title("EDGE // Research workbench")
     st.caption(
-        "Local synthetic engine acceptance / Optional external SEC filing metadata · Live trading disabled"
+        "Local synthetic engine acceptance / Optional external SEC metadata / User-authored journal · Live trading disabled"
     )
     page = st.radio(
         "Workspace",
-        ["Engine acceptance", "SEC filing research"],
+        ["Engine acceptance", "SEC filing research", "Research journal"],
         horizontal=True,
         key="edge_workspace",
     )
@@ -394,6 +397,10 @@ def main(output_dir: Path | None = None) -> None:
         from edge.dashboard_sec import render
 
         render()
+    elif page == "Research journal":
+        from edge.dashboard_journal import render
+
+        render(output_dir)
     else:
         _workbench(output_dir)
 

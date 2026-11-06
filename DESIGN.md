@@ -34,6 +34,25 @@ with fabricated market content.
 - Tabular figures and a local monospace system-font stack support dense
   instrument-like readouts without loading remote assets.
 
+## Research journal extension
+
+The third native Workspace inherits the amber CRT theme without decorative
+panels or synthetic readouts. Visible horizon and task radios separate Swing /
+Long-term and Saved entries / New entry. A single-column native form keeps required
+identity, date and thesis fields visible; optional narratives and up to three
+manual references use disclosures. Enter-to-submit is disabled. Save is explicit
+and append-only; draft navigation may discard unsaved edits.
+
+Ten-entry pages use literal-text summaries, native entry selection and previous /
+next controls. Saved snapshots show immutable entry identity, user-authored
+provenance and UTC creation separately from declared research/source dates.
+All user strings use native plain text, never raw HTML or Markdown/link syntax.
+Missing sections and references are named as not supplied. Typed failures show
+fixed recovery guidance without SQL or note content; previous saved evidence is
+never relabelled as a new success. JSON downloads do not submit or write files.
+The unverified-notes warning stays above the controls; no broker or risk settings
+are added.
+
 ## Interaction and accessibility
 
 - Keep all financial inputs, state labels, provenance and synthetic-data

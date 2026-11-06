@@ -11,7 +11,8 @@ application. It is not an autonomous trading bot.
 - Strict identity, source, timestamp, currency/unit, price and liquidity validation.
 - SQLite run index with per-run input, manifest and result JSON evidence.
 - A local simulation CLI and Streamlit workbench with native workspace navigation
-  between engine acceptance (default) and explicit SEC filing research, plus the
+  between engine acceptance (default), explicit SEC filing research and a local
+  user-authored Research journal, plus the
   opt-in `edge sec-filings TICKER` metadata lookup.
 - A local amber-on-near-black 1980s terminal dashboard: four compact, square,
   ruled panes for acceptance controls, fixture provenance, session outputs and
@@ -66,11 +67,42 @@ outputs, event tabs, assumptions and JSON evidence downloads remain available.
 Dashboard workflows can be checked without a service:
 
 ```powershell
-& .\.venv-nautilus\Scripts\python.exe -m pytest -q tests/test_dashboard.py tests/test_dashboard_sec.py
+& .\.venv-nautilus\Scripts\python.exe -m pytest -q tests/test_dashboard.py tests/test_dashboard_sec.py tests/test_dashboard_journal.py
 ```
 
 AppTest verifies behavior, not rendered CSS or visual/keyboard accessibility;
 those require a browser check of the installed Streamlit version.
+
+## Local Research journal
+
+Choose **Research journal** in Workspace, then **Swing** or **Long-term**.
+Each horizon has its own saved-entry list and new-entry form. This is a local,
+append-only record of user-authored opinions, not verified research,
+recommendations, trade plans or validated company identity. No market data,
+financial calculations, network requests or automatic SEC imports are involved.
+
+Choose **New entry**, complete the required title, ticker, company, exact
+`YYYY-MM-DD` research date and thesis, then explicitly click **Save new entry**.
+Enter does not submit. Bull/bear cases, catalysts and invalidation are optional.
+The form offers up to three manual labelled source references, each with an
+optional absolute HTTPS URL and optional source date. Dates cannot be future;
+URLs cannot contain credentials or whitespace. Title, company and source labels
+are limited to 200 characters, narratives to 10,000, and URLs to 2,048.
+Unused sections, citations, URLs and source dates are explicitly shown as not
+supplied. All notes and references display literally, not as HTML or Markdown.
+Unsaved edits may be lost on navigation.
+
+Only a valid explicit save initializes/writes `data/research-journal.sqlite3`,
+separate from engine evidence and SEC session results. No existing database is
+migrated. Startup, navigation, list/view, draft edits, reruns and downloads do
+not create entries. There are no edit/delete controls. Saved snapshots retain
+their entry ID, user-authored provenance and UTC creation time independently of
+draft edits; research/source dates remain user declarations, not retrieval times.
+After a failed attempt any previous snapshot is labelled as previous, never a
+new success. Saved entries persist across sessions; lists paginate ten at a time.
+**Download saved entry (JSON)** exports the saved backend entry envelope with no
+extra disk file or resubmission. This local file is not encrypted, synced or
+tamper-proof; protect the data directory and avoid storing sensitive information.
 
 ## Optional SEC filing metadata
 
@@ -285,12 +317,14 @@ The approved integration sequence remains:
    yet verified); separately, licensed market-data integration and Nautilus
    catalog acceptance remain gated.
 3. Qlib research/signals in an isolated Python 3.12 worker; not a second simulator.
-4. EDGE discovery, separate swing/long-term workflows, manual holdings and journal.
+4. EDGE discovery, fuller separate swing/long-term workflows and manual holdings
+   remain future work; the local user-authored swing/long-term journal is implemented.
 5. skfolio target allocations; selective Vibe-Trading research workflow reuse.
 6. Kronos as an isolated, independently evaluated experiment, not financial truth.
 
 `openbb-core==2.0.1` and `openbb-sec==2.0.0` are included in the optional `sec`
-extra and the accepted Windows lock; the API is not part of the dashboard. Qlib,
+extra and the accepted Windows lock; the explicit metadata lookup is available
+in the dashboard's SEC workspace. Qlib,
 skfolio, Kronos and Vibe-Trading are not claimed installed or operational here.
 VectorBT and Backtesting.py remain excluded. Future sandbox/paper trading needs
 separate authorization; live brokerage execution remains outside this implementation.

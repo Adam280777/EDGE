@@ -35,6 +35,13 @@ responsible for decisions and broker execution.
 
 - The first implemented surface is a local, simulation-only NautilusTrader
   acceptance workbench using explicitly synthetic data.
+- Native Workspace navigation also exposes explicit opt-in SEC filing metadata
+  research (not yet verified against a live response) and a local Research journal.
+- The journal stores append-only user-authored swing/long-term notes with optional
+  manually declared references, literal-text viewing and saved-entry JSON export.
+  Company identity, citations and research/source dates are not verified; these
+  notes are not recommendations or trade plans. Only an explicit valid form save
+  writes its separate local database; no provider access or calculations occur.
 - The initial data contract rejects real market data until source rights,
   identity, timestamps, currency and units, freshness, and corporate-action
   handling have an explicit acceptance path.

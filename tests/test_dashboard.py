@@ -122,6 +122,13 @@ def test_terminal_theme_and_four_pane_structure(tmp_path) -> None:
     assert ".st-key-edge_history" in css
     assert ':has(> [data-testid="stColumn"] .st-key-edge_acceptance)' in css
     assert "prefers-reduced-motion" in css
+    assert (
+        '[data-testid="stCaptionContainer"],\n'
+        '[data-testid="stCaptionContainer"] p {\n'
+        "  color: var(--edge-muted);\n"
+        "  opacity: 1;\n"
+        "}"
+    ) in css  # Streamlit's default 0.6 opacity must not dim muted captions.
     assert "#08131f" not in css
     assert "#63e6ad" not in css
     assert not app.metric  # Never populate decorative terminal readouts.

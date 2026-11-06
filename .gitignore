@@ -14,3 +14,8 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+.venv-nautilus/
+data/
+*.egg-info/
+build/
+dist/

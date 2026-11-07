@@ -73,6 +73,16 @@ def parser() -> argparse.ArgumentParser:
     filings.add_argument("--start-date", type=_iso_date, metavar="YYYY-MM-DD", help="Inclusive filing-date lower bound.")
     filings.add_argument("--end-date", type=_iso_date, metavar="YYYY-MM-DD", help="Inclusive filing-date upper bound.")
     filings.add_argument("--form", action="append", dest="form_types", help="Exact allowlisted form; repeat to select multiple forms.")
+    backup = commands.add_parser(
+        "journal-backup", help="Snapshot only the local journal; no provider access."
+    )
+    backup.add_argument("destination", type=Path, help="NEW backup ZIP file; parent directory must exist.")
+    backup.add_argument("--journal-dir", type=Path, default=Path("data"), help="Source journal directory (default: data).")
+    restore = commands.add_parser(
+        "journal-restore", help="Restore a backup into a NEW or EMPTY journal directory only."
+    )
+    restore.add_argument("backup", type=Path, help="Journal backup ZIP file.")
+    restore.add_argument("--journal-dir", type=Path, required=True, help="NEW or EMPTY destination directory; parent must exist. Never replaces or merges a journal.")
     return root
 
 
@@ -95,6 +105,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             result = run(dataset, SimulationConfig(scenario=args.scenario), args.output_dir)
         elif args.command == "runs":
             result = RunStore(args.output_dir).list_runs()
+        elif args.command in ("journal-backup", "journal-restore"):
+            from edge.journal_backup import backup_journal, restore_journal
+
+            if args.command == "journal-backup":
+                result = backup_journal(args.journal_dir, args.destination)
+            else:
+                result = restore_journal(args.backup, args.journal_dir)
         elif args.command == "sec-filings":
             # Keep even the lightweight SEC API out of import/help/other commands.
             from edge.data import lookup_sec_filings
@@ -109,6 +126,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     except (EdgeError, OSError, sqlite3.Error, ImportError) as error:
         message = str(error)
+        if args.command in ("journal-backup", "journal-restore"):
+            # No exception, path, note content or low-level SQL is printed.
+            message = (
+                "Journal recovery operation failed. Check the source, supported "
+                "backup format, permissions and absent destination; no existing "
+                "journal or backup was replaced."
+            )
         if args.command == "sec-filings":
             from edge.data.sec_filings import USER_AGENT_ENV_VAR, redact
 

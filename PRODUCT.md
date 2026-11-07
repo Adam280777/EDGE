@@ -6,6 +6,14 @@
 
 web
 
+## Delivery
+
+The only supported end-user distribution is the standalone local Windows
+desktop executable (`dist\EDGE\EDGE.exe`). The Streamlit UI is rendered inside
+its native WebView2 window and served only by that launch's loopback process.
+There is no hosted web product, direct browser-launch mode, or browser fallback;
+`web` describes the embedded UI technology, not a deployment target.
+
 ## Users
 
 The primary user is a UK-based retail investor researching companies and making
@@ -37,6 +45,15 @@ responsible for decisions and broker execution.
   acceptance workbench using explicitly synthetic data.
 - Native Workspace navigation also exposes explicit opt-in SEC filing metadata
   research (not yet verified against a live response) and a local Research journal.
+- Backup and recovery restores only separate copies, with explicit session-only
+  opening; original data is never replaced. The separate company watchlist stores
+  user-declared labels and notes, not verified identity or company facts.
+- Snapshot acceptance reports expose unresolved rights, coverage, adjustments
+  and point-in-time evidence; they do not unlock calculations or live trading.
+- Provider settings retain only bounded non-secret configuration. Native masked
+  Windows credential editing is explicit; startup never reads credentials.
+  Authorized historical fetches remain private, ephemeral research display
+  only, with rights declarations and unresolved acceptance gates visible.
 - The journal stores append-only user-authored swing/long-term notes with optional
   manually declared references, literal-text viewing and saved-entry JSON export.
   Company identity, citations and research/source dates are not verified; these

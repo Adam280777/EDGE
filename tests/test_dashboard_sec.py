@@ -8,7 +8,7 @@ from unittest.mock import Mock
 
 import pytest
 
-pytest.importorskip("streamlit")
+st = pytest.importorskip("streamlit")
 
 from test_dashboard import dashboard, text
 
@@ -128,6 +128,8 @@ def test_navigation_rerender_edits_are_inert_and_no_writes(tmp_path, monkeypatch
 
 def test_success_snapshot_nulls_download_contract_and_navigation(tmp_path, monkeypatch):
     mock = install_lookup(monkeypatch)
+    dataframe = Mock(wraps=st.dataframe)
+    monkeypatch.setattr(st, "dataframe", dataframe)
     app = submit(research(tmp_path))
     result = evidence(app)
     assert result["identity"]["requested_ticker"] == "AAPL"
@@ -155,6 +157,13 @@ def test_success_snapshot_nulls_download_contract_and_navigation(tmp_path, monke
         == "Download SEC metadata evidence (JSON)"
     )
     assert '"filing_index_url"' in app.dataframe[0].proto.columns
+    assert "SEC URLs are plain text for selection and copying" in text(app)
+    assert "Open SEC index" not in text(app)
+    column_config = dataframe.call_args.kwargs["column_config"]
+    assert {
+        name: config["type_config"]["type"]
+        for name, config in column_config.items()
+    } == {"filing_index_url": "text", "primary_document_url": "text"}
 
     # Draft edits, rendering, navigation and disclosure never refresh the lookup.
     snapshot = app.session_state["edge_sec_evidence"]

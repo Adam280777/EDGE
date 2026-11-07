@@ -1,0 +1,37 @@
+name: Offline Windows acceptance
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PIP_NO_INPUT: "1"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: x64
+      - name: Install exact Windows dependency lock
+        run: >-
+          python -m pip install --only-binary=:all: --timeout 30 --retries 1
+          -r requirements-windows-py313.lock.txt
+      - name: Install EDGE without resolving runtime dependencies
+        run: python -m pip install --no-deps -e .
+      - name: Check dependency consistency
+        run: python -m pip check
+      - name: Run all tests offline
+        env:
+          EDGE_TEST_OFFLINE: "1"
+        run: python -m pytest -q

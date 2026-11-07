@@ -15,7 +15,11 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 .venv-nautilus/
+.venv-desktop/
 data/
+# The root data rule also matches the provider source package by name.
+!src/edge/data/
+!src/edge/data/*.py
 *.egg-info/
 build/
 dist/

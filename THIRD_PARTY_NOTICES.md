@@ -41,3 +41,20 @@ external distribution.
 
 VectorBT (Commons Clause addition) and Backtesting.py (AGPL-3.0) are intentionally
 not dependencies of this application.
+
+## Local Windows desktop build
+
+The opt-in desktop extra adds pywebview 6.2.1 (BSD-3-Clause), Python.NET
+(MIT), clr-loader (MIT), and PyInstaller 6.22.3 (GPL-2.0-or-later with the
+bootloader exception). CPython uses the PSF licence. Tk/Tcl licences, native
+wheel notices and Microsoft WebView2 SDK redistributable notices must also be
+retained. WebView2 Evergreen Runtime is an independently installed prerequisite,
+not bundled or automatically downloaded by EDGE.
+
+`scripts/build_desktop.py` preserves installed distribution licence/notice
+files and a conservative dependency inventory in `_internal/licenses` in the
+folder distribution. These notices do not clear all external-distribution
+obligations. In particular Nautilus LGPL corresponding-source and
+replacement/relinking requirements need release review before sharing externally.
+This unsigned local build contains unmodified upstream dependencies, not an
+externally cleared or signed installer.

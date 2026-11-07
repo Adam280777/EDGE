@@ -99,6 +99,9 @@ def test_startup_navigation_and_unsubmitted_draft_never_write(tmp_path):
         "Engine acceptance",
         "SEC filing research",
         "Research journal",
+        "Backup and recovery",
+        "Provider settings",
+        "Company watchlist",
     ]
     assert "No saved entries" in all_text(app)
     assert "USER-AUTHORED NOTES" in all_text(app)

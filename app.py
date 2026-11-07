@@ -3,20 +3,77 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from pathlib import Path
 
 import streamlit as st
 
 from edge import simulation_service
+from edge.desktop_paths import app_data_root
 from edge.domain import SimulationConfig
 from edge.errors import EdgeError
 from edge.fixtures import demo_dataset
 from edge.run_store import RunStore
 
-DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "data"
+DEFAULT_OUTPUT_DIR = app_data_root(Path(__file__).resolve().parent / "data")
 RECENT_RUN_KEY = "edge_recent_run"
 READ_ERRORS = (EdgeError, OSError, sqlite3.Error, json.JSONDecodeError)
+WORKSPACES = (
+    "Engine acceptance", "SEC filing research", "Research journal",
+    "Backup and recovery", "Provider settings", "Company watchlist",
+)
+
+
+def _journal_root(default: Path) -> Path:
+    """Session-opened recovery never changes the application storage default."""
+    selected = st.session_state.get("edge_open_journal_root")
+    return selected if isinstance(selected, Path) and selected.is_absolute() else default
+
+
+def _apply_navigation_request(journal_root: Path) -> None:
+    """Consume a local routing intent before destination widgets are created."""
+    request = st.session_state.pop("edge_navigation_request", None)
+    if not isinstance(request, dict):
+        return
+    target, symbol = request.get("target"), request.get("symbol")
+    if (
+        target not in ("SEC filing research", "Research journal")
+        or not isinstance(symbol, str)
+        or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.^:/-]{0,31}", symbol) is None
+    ):
+        return
+    st.session_state["edge_workspace"] = target
+    symbol = symbol.upper()
+    if target == "SEC filing research":
+        st.session_state["edge_sec_ticker"] = symbol
+    else:
+        horizon = st.session_state.get("edge_journal_horizon", "Swing")
+        horizon_value = "long-term" if horizon == "Long-term" else "swing"
+        prefix = f"edge_journal_{journal_root.resolve()}_{horizon_value}"
+        st.session_state[f"{prefix}_task"] = "New entry"
+        st.session_state[f"{prefix}_symbol"] = symbol
+
+
+def _render_journal(default_root: Path) -> None:
+    """Require explicit session opening of a separately recovered journal."""
+    from edge.dashboard_journal import render
+
+    pending = st.session_state.get("edge_restored_journal_root")
+    selected = _journal_root(default_root)
+    if isinstance(pending, Path) and pending.is_absolute() and pending != selected:
+        st.info("A recovered journal is available separately. The original journal is unchanged.")
+        if st.button("Open restored journal", key="edge_open_recovered_journal"):
+            st.session_state["edge_open_journal_root"] = pending
+            st.rerun()
+    if selected != default_root:
+        st.warning("Recovered journal open for this session only. Original storage remains unchanged.")
+        if st.button("Return to original journal", key="edge_return_original_journal"):
+            st.session_state.pop("edge_open_journal_root", None)
+            st.rerun()
+    render(selected)
+
+
 _TERMINAL_CSS = """
 :root {
   color-scheme: dark;
@@ -381,6 +438,7 @@ def main(output_dir: Path | None = None) -> None:
     output_dir = (
         DEFAULT_OUTPUT_DIR if output_dir is None else Path(output_dir).resolve()
     )
+    _apply_navigation_request(_journal_root(output_dir))
     st.set_page_config(page_title="EDGE · Research workbench", layout="wide")
     st.markdown(f"<style>{_TERMINAL_CSS}</style>", unsafe_allow_html=True)
     st.title("EDGE // Research workbench")
@@ -389,7 +447,7 @@ def main(output_dir: Path | None = None) -> None:
     )
     page = st.radio(
         "Workspace",
-        ["Engine acceptance", "SEC filing research", "Research journal"],
+        list(WORKSPACES),
         horizontal=True,
         key="edge_workspace",
     )
@@ -398,7 +456,17 @@ def main(output_dir: Path | None = None) -> None:
 
         render()
     elif page == "Research journal":
-        from edge.dashboard_journal import render
+        _render_journal(output_dir)
+    elif page == "Backup and recovery":
+        from edge.dashboard_backup import render
+
+        render(output_dir)
+    elif page == "Provider settings":
+        from edge.dashboard_provider import render
+
+        render(output_dir)
+    elif page == "Company watchlist":
+        from edge.dashboard_company import render
 
         render(output_dir)
     else:

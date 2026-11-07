@@ -150,18 +150,19 @@ def _results(evidence: str) -> None:
     if result["filings"]:
         st.caption(
             "Missing report dates, acceptance timestamps and primary documents remain "
-            "unavailable (blank); they are never inferred. SEC links open external documents."
+            "unavailable (blank); they are never inferred. SEC URLs are plain text for "
+            "selection and copying; EDGE does not open external pages."
         )
         st.dataframe(
             result["filings"],
             hide_index=True,
             width="stretch",
             column_config={
-                "filing_index_url": st.column_config.LinkColumn(
-                    "SEC filing index", display_text="Open SEC index"
+                "filing_index_url": st.column_config.TextColumn(
+                    "SEC filing index URL"
                 ),
-                "primary_document_url": st.column_config.LinkColumn(
-                    "SEC primary document", display_text="Open SEC document"
+                "primary_document_url": st.column_config.TextColumn(
+                    "SEC primary document URL"
                 ),
             },
         )

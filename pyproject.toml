@@ -15,6 +15,11 @@ dev = ["pytest>=8.3,<10"]
 dashboard = ["streamlit>=1.50,<2"]
 # Opt-in SEC filing metadata via OpenBB v5 provider packages (exact versions the adapter is tested against).
 sec = ["openbb-core==2.0.1", "openbb-sec==2.0.0"]
+# Opt-in Windows folder distribution; build in .venv-desktop, never the original .venv.
+desktop = [
+    "pywebview==6.2.1", "pythonnet==3.2.1", "clr-loader==0.3.1",
+    "pyinstaller==6.22.3", "streamlit==1.66.1",
+]
 
 [project.scripts]
 edge = "edge.cli:main"
@@ -25,3 +30,8 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[tool.ruff]
+# PyInstaller injects these names when executing EDGE.spec; they are not imports
+# or application globals. Declare the actual build context rather than F821 noqa.
+builtins = ["SPECPATH", "Analysis", "PYZ", "EXE", "COLLECT"]

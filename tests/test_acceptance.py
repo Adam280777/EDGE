@@ -55,6 +55,8 @@ def assert_ok(result: subprocess.CompletedProcess[str]) -> None:
 
 def test_original_virtualenv_remains_pip_only() -> None:
     """Use metadata, not imports or package installation, in the old env."""
+    if not (ROOT / ".venv").exists():
+        pytest.skip("Original local virtualenv is absent in a fresh checkout.")
     interpreter = ROOT / ".venv" / "Scripts" / "python.exe"
     assert interpreter.is_file()
     result = subprocess.run(
@@ -72,6 +74,15 @@ def test_original_virtualenv_remains_pip_only() -> None:
     )
     assert_ok(result)
     assert json.loads(result.stdout) == ["pip"]
+
+
+def test_original_virtualenv_check_skips_fresh_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CI must not create a local historical environment to run acceptance."""
+    monkeypatch.setitem(globals(), "ROOT", tmp_path)
+    with pytest.raises(pytest.skip.Exception, match="fresh checkout"):
+        test_original_virtualenv_remains_pip_only()
 
 
 def test_doctor_succeeds_with_pinned_engine() -> None:

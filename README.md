@@ -345,6 +345,23 @@ This is **tested progress, not final production-ready completion** of every
 requested integration. Commit/push/CI status must be reported separately by the
 publication owner; this documentation records no new publication or CI result.
 
+### User-reported manual acceptance — 8 November 2026
+
+For candidate SHA-256
+`9aaf4dc8486966720e7efb9b0ce5c0ba846b853e28adc19e2bc13ba32076c581`,
+the user confirmed at approximately 14:55 UTC:
+**“Both engines and run/cancel/navigation/close work”** and
+**“CSV and bundle save/restore/cancel work.”**
+This closes the consolidated manual verification task for skfolio/Kronos UI,
+run/cancellation/navigation/window-close and native CSV/bundle file flows.
+It is **user-reported manual acceptance**, not automated evidence or an
+independently captured execution trace. The earlier harness failures above remain
+recorded; they are not reclassified as passes. No runtime rebuild is implied.
+
+Private FMP retention/derived-use clarification and UK coverage, corporate-action,
+calendar and PIT accuracy gates remain unchanged. Manual workflow acceptance
+does not establish every requested market-data integration as production-ready.
+
 ## Run EDGE
 
 For normal use, launch **`dist\EDGE\EDGE.exe`** on Windows and keep the complete

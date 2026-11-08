@@ -89,3 +89,18 @@ def test_columns_without_primary_unique_constraints_are_rejected():
         con.execute(f"PRAGMA application_id={APPLICATION_ID}")
         with pytest.raises(DecisionInputError):
             validate_database(con)
+
+
+def test_quote_history_is_ordered_read_only_and_matches_latest(tmp_path):
+    store = MonitoringStore(tmp_path / "data")
+    assert store.quote_history() == {}
+    assert not store.database.exists()
+    later, earlier = NOW + timedelta(hours=2), NOW + timedelta(hours=1)
+    store.append_quote("TEST", "UK", PriceQuote(Decimal(95), "GBp", later, SOURCE))
+    store.append_quote("TEST", "UK", PriceQuote(Decimal(91), "GBp", earlier, SOURCE))
+    store.append_quote("OTHER", "UK", PriceQuote(Decimal(5), "GBP", NOW, SOURCE))
+    history = store.quote_history()
+    assert [q.amount for q in history[("TEST", "UK")]] == [Decimal(91), Decimal(95)]
+    assert [q.amount for q in history[("OTHER", "UK")]] == [Decimal(5)]
+    assert store.quotes()[("TEST", "UK")] == history[("TEST", "UK")][-1]
+    assert store.quote_history() == history

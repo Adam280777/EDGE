@@ -34,18 +34,19 @@ BOOT_ENV = "_EDGE_DESKTOP_BOOT"
 STARTUP_TIMEOUT = 75.0
 WEBVIEW2_CLIENT = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 SMOKE_WORKSPACES = (
-    ("Evidence / Engine", "SYNTHETIC DATA ONLY"),
-    ("Research / SEC", "SEC filing research"),
-    ("Research / Journal", "Research journal"),
-    ("Research / Watchlist", "Company / watchlist workspace"),
-    ("Research / Decisions", "Research / decisions"),
-    ("Research / Discovery", "Discovery / transparent manual screens"),
-    ("Research / Lab", "Research lab / experimental workflows"),
-    ("Holdings / Portfolio", "Manual portfolio / GBP reporting"),
-    ("Holdings / Monitoring", "Monitoring / local manual alerts"),
-    ("System / Recovery", "Journal backup / restore"),
-    ("System / Bundle recovery", "Application recovery / separate bundle"),
-    ("System / Providers", "Provider settings / ephemeral prices"),
+    ("HOME · Command center", "Book overview"),
+    ("DSC · Discovery", "Discovery / transparent manual screens"),
+    ("WCH · Watchlist", "Company / watchlist workspace"),
+    ("DEC · Decisions", "Research / decisions"),
+    ("SEC · SEC filings", "SEC filing research"),
+    ("JRN · Journal", "Research journal"),
+    ("LAB · Research lab", "Research lab / experimental workflows"),
+    ("PRT · Portfolio", "Manual portfolio / GBP reporting"),
+    ("MON · Monitoring", "Monitoring / local manual alerts"),
+    ("ENG · Engine", "SYNTHETIC DATA ONLY"),
+    ("PRV · Providers", "Provider settings / ephemeral prices"),
+    ("BAK · Recovery", "Journal backup / restore"),
+    ("APP · Bundle recovery", "Application recovery / separate bundle"),
 )
 
 
@@ -423,7 +424,7 @@ def run_window(
                         if (
                             body
                             and marker.casefold() in body.casefold()
-                            and "Live trading disabled" in body
+                            and "live trading disabled" in body.casefold()
                         ):
                             visited.append(target)
                             requested = False
@@ -445,7 +446,8 @@ def run_window(
                                 window.evaluate_js(
                                     "(() => { const label = Array.from(document.querySelectorAll("
                                     "'[data-testid=\"stRadio\"] label')).find(e => "
-                                    f"e.innerText.trim() === {json.dumps(target)}); "
+                                    "e.innerText.trim().toLowerCase() === "
+                                    f"{json.dumps(target.casefold())}); "
                                     "if (!label) return false; label.click(); return true; })()"
                                 )
                             )

@@ -133,7 +133,7 @@ def native_check():
         def capture():
             try:
                 for _ in range(100):
-                    if window.evaluate_js("document.body.innerText.includes('Engine acceptance')"):
+                    if window.evaluate_js("document.body.innerText.toLowerCase().includes('live trading disabled')"):
                         break
                     time.sleep(0.25)
                 else:
@@ -144,14 +144,14 @@ def native_check():
                 def click_label(label):
                     window.evaluate_js(
                         "Array.from(document.querySelectorAll('label'))"
-                        f".find(e=>e.innerText.trim()==={label!r}).click()"
+                        f".find(e=>e.innerText.trim().toLowerCase()==={label.lower()!r}).click()"
                     )
                     time.sleep(0.6)
 
                 def click_button(label):
                     window.evaluate_js(
                         "Array.from(document.querySelectorAll('button'))"
-                        f".find(e=>e.innerText.trim()==={label!r}).click()"
+                        f".find(e=>e.innerText.trim().toLowerCase()==={label.lower()!r}).click()"
                     )
                     time.sleep(0.7)
 

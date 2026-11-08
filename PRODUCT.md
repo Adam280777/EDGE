@@ -58,6 +58,9 @@ responsible for decisions and broker execution.
   settings, restoring only to an absent separate root. Cooperative consistency
   is not authenticity or financial/source acceptance; journal archives retain
   their original journal-only format.
+- Workspace layouts are user-configurable (move, resize, hide, alternative
+  views, named profiles). Layout is presentation only, saved explicitly to
+  `settings/layouts-v1.json`, and excluded from application bundles.
 - Source/native capture checks are not certification of the current executable.
   Actual native selected-file/recovery flows and final frozen acceptance remain
   pending. All intended market-data/research integrations must meet the user's
@@ -133,4 +136,7 @@ responsible for decisions and broker execution.
 ## Accessibility & Inclusion
 
 Dashboard data, controls and status must remain legible and usable with keyboard
-navigation, clear contrast, and responsive layouts.
+navigation, clear contrast, and responsive layouts. Every chart carries alt text
+and a caption stating what it does and does not draw; colour is never the only
+carrier of meaning. The CRT scanline and glow layer is removed under high-contrast
+and forced-colours modes, and all motion stops under reduced-motion preferences.

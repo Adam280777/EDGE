@@ -67,7 +67,7 @@ def exercise_research_window(window: Any, report_path: Path, server_pid: int) ->
     try:
         report["stage"] = "lab-entry"
         _wait(window, lambda body: _contains(body, "Live trading disabled"), 30)
-        _click(window, "Research / Lab", '[data-testid="stRadio"] label')
+        _click(window, "LAB · Research lab", '[data-testid="stRadio"] label')
         _wait(
             window,
             lambda body: _contains(body, "Research lab / experimental workflows"),
@@ -153,10 +153,10 @@ def exercise_research_window(window: Any, report_path: Path, server_pid: int) ->
         report["stage"] = "navigation-cancel"
         _click(window, "Run selected synthetic experiment")
         _wait(window, lambda body: "Cancel synthetic experiment" in body, 10)
-        _click(window, "Evidence / Engine", '[data-testid="stRadio"] label')
+        _click(window, "ENG · Engine", '[data-testid="stRadio"] label')
         _wait(window, lambda body: _contains(body, "SYNTHETIC DATA ONLY"), 15)
         time.sleep(3)
-        _click(window, "Research / Lab", '[data-testid="stRadio"] label')
+        _click(window, "LAB · Research lab", '[data-testid="stRadio"] label')
         _wait(window, lambda body: "Experiment cancelled." in body, 10)
         report["navigation_cancel_ui"] = True
         _wait(window, lambda body: "Brief cooldown" not in body, 10)

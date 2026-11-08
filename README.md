@@ -27,10 +27,13 @@ must not be assumed to contain them until rebuilt and independently checked.
 - Monitoring is opt-in only while EDGE is open and the Monitoring / Alerts
   task is active. Leaving it revokes opt-in; returning or starting a new session
   stays off. Checks append explainable local alerts, never alter rules/holdings.
-- Eleven grouped workspaces retain stable underlying navigation values:
-  Engine acceptance, SEC filing research, Research journal, Company watchlist,
-  Research / decisions, Discovery, Manual portfolio, Monitoring, Backup and
-  recovery, Application recovery and Provider settings.
+- Thirteen grouped workspaces retain stable underlying navigation values:
+  Command center (default landing page), Discovery, Company watchlist,
+  Research / decisions, SEC filing research, Research journal, Research lab,
+  Manual portfolio, Monitoring, Engine acceptance, Provider settings, Backup and
+  recovery and Application recovery. They are shown as terminal function keys
+  (`HOME`, `DSC`, `WCH`, `DEC`, `SEC`, `JRN`, `LAB`, `PRT`, `MON`, `ENG`, `PRV`,
+  `BAK`, `APP`); the codes are labels only, not keyboard shortcuts.
 
 ### User-record bundle recovery
 
@@ -44,7 +47,8 @@ switches active storage. Native recovery chooses a parent and a new child name.
 The default registry covers `research-journal.sqlite3`, `watchlist.sqlite3`,
 `portfolio.sqlite3`, `decisions.sqlite3`, `manual-monitoring.sqlite3` and
 non-secret `settings/provider-v1.json`. Credentials, vendor state, simulation
-evidence and runtime files are excluded. Missing registered stores are explicit;
+evidence and runtime files are excluded. Saved layout profiles
+(`settings/layouts-v1.json`) are display preferences and are not bundled. Missing registered stores are explicit;
 unknown SQLite stores fail closed. Bounds, hashes, schema/record/internal-link
 validation and online SQLite snapshots precede no-clobber publication.
 
@@ -385,14 +389,23 @@ deployment instructions.
   rejection scenario. These are acceptance tests, **not market research**.
 - Strict identity, source, timestamp, currency/unit, price and liquidity validation.
 - SQLite run index with per-run input, manifest and result JSON evidence.
-- A bundled Windows desktop workbench with native workspace navigation between
-  engine acceptance (default), explicit SEC filing research and a local
-  user-authored Research journal. The `edge` CLI is retained for developer
-  diagnostics, simulation and local journal recovery.
-- A local amber-on-near-black 1980s terminal dashboard: four compact, square,
-  ruled panes for acceptance controls, fixture provenance, session outputs and
-  persisted history. Cyan labels and explicit green/red status cues; no visual
-  assets, live feed or fabricated market panels.
+- A bundled Windows desktop workbench with native function-key navigation. It
+  opens on a read-only Command Center (book overview, allocation and currency
+  donuts, stop/target proximity, recorded-quote price tracks, research pipeline
+  and system status); rendering it never runs an engine or fetches data. The
+  `edge` CLI is retained for developer diagnostics, simulation and local
+  journal recovery.
+- Configurable workspaces: every workspace is a grid of panels that can be
+  moved, resized, hidden and switched between honest alternative views, saved
+  as named layout profiles (built-in `Default`, `Swing trading`, `Long-term`)
+  in `settings/layouts-v1.json`. Layout changes are presentation only and are
+  written only when the user saves (see [DESIGN.md](DESIGN.md)).
+- A local amber-on-near-black 1980s trading-terminal interface (see
+  [DESIGN.md](DESIGN.md)): masthead, ruled panes with provenance chips, KPI
+  tiles, a static CRT scanline layer and locally rendered Altair charts
+  (line, candle, execution tape, price ladder, proximity, donut, heat map,
+  timeline). Charts draw recorded or explicitly synthetic values only; no live
+  feed or fabricated market panels.
 - An opt-in OpenBB v5 SEC filing-metadata adapter. Its validation and provider
   contract have offline tests; no live SEC lookup has yet been verified.
 - Automated input, accounting, persistence and application tests.
@@ -613,7 +626,7 @@ or running other commands does not load the SEC provider or make an SEC request.
 Only the explicit `sec-filings` command, `lookup_sec_filings(...)` API call, or
 dashboard **Look up SEC filings** form submission can initiate a lookup.
 
-The dashboard uses a native horizontal workspace selector; its default engine
+The dashboard uses a native horizontal function-key selector; the Engine (`ENG`)
 workbench retains the four-pane acceptance workflow. The SEC page accepts a US
 ticker, exact allowlisted forms and optional inclusive ISO filing-date bounds.
 Its native form does not submit on Enter. No request occurs on page load,

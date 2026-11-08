@@ -145,7 +145,12 @@ def test_no_direct_links_or_fabricated_company_facts(tmp_path: Path) -> None:
     assert not app.exception
     assert "Only my note" in _text(app)
     assert not app.link_button
-    assert not app.markdown
+    # Terminal chrome is fixed-vocabulary Markdown; user text and links never are.
+    assert not any(
+        needle in str(item.value)
+        for item in app.markdown
+        for needle in ("Only my note", "User label", "ABC", "href", "](")
+    )
     assert all(
         "market data" not in str(item.value).lower()
         or "no market data" in str(item.value).lower()

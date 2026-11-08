@@ -328,7 +328,7 @@ def test_frozen_smoke_routes_match_current_app_displayed_api():
         values["WORKSPACE_LABELS"][name] for name in values["WORKSPACES"]
     )
     assert tuple(label for label, marker in desktop.SMOKE_WORKSPACES) == expected
-    assert len(expected) == 12
+    assert len(expected) == 13
     assert all(marker for label, marker in desktop.SMOKE_WORKSPACES)
 
 

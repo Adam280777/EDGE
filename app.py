@@ -5,52 +5,108 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from datetime import UTC, datetime
 from pathlib import Path
 
 import streamlit as st
 
 from edge import simulation_service
+from edge import ui_charts as charts
 from edge.desktop_paths import app_data_root
 from edge.domain import SimulationConfig
 from edge.errors import EdgeError
 from edge.fixtures import demo_dataset
 from edge.run_store import RunStore
+from edge.ui_grid import Panel, PanelContext, grid
+from edge.ui_kit import esc, html_block, provenance
+from edge.ui_theme import BASE_CSS, TERMINAL_CSS
 
 DEFAULT_OUTPUT_DIR = app_data_root(Path(__file__).resolve().parent / "data")
 RECENT_RUN_KEY = "edge_recent_run"
 READ_ERRORS = (EdgeError, OSError, sqlite3.Error, json.JSONDecodeError)
 WORKSPACES = (
-    "Engine acceptance", "SEC filing research", "Research journal",
-    "Company watchlist", "Research / decisions", "Discovery", "Research lab",
-    "Manual portfolio", "Monitoring", "Backup and recovery", "Application recovery", "Provider settings",
+    "Command center",
+    "Discovery", "Company watchlist", "Research / decisions", "SEC filing research",
+    "Research journal", "Research lab",
+    "Manual portfolio", "Monitoring",
+    "Engine acceptance",
+    "Provider settings", "Backup and recovery", "Application recovery",
 )
 WORKSPACE_GROUPS = {
-    "Engine acceptance": "Evidence",
-    "SEC filing research": "Research",
-    "Research journal": "Research",
+    "Command center": "Command",
+    "Discovery": "Research",
     "Company watchlist": "Research",
     "Research / decisions": "Research",
-    "Discovery": "Research",
+    "SEC filing research": "Research",
+    "Research journal": "Research",
     "Research lab": "Research",
     "Manual portfolio": "Holdings",
     "Monitoring": "Holdings",
-    "Backup and recovery": "System",
+    "Engine acceptance": "Evidence",
     "Provider settings": "System",
+    "Backup and recovery": "System",
     "Application recovery": "System",
 }
+# Terminal function codes are visual labels only, never keyboard shortcuts.
+WORKSPACE_CODES = {
+    "Command center": "HOME",
+    "Discovery": "DSC",
+    "Company watchlist": "WCH",
+    "Research / decisions": "DEC",
+    "SEC filing research": "SEC",
+    "Research journal": "JRN",
+    "Research lab": "LAB",
+    "Manual portfolio": "PRT",
+    "Monitoring": "MON",
+    "Engine acceptance": "ENG",
+    "Provider settings": "PRV",
+    "Backup and recovery": "BAK",
+    "Application recovery": "APP",
+}
+WORKSPACE_TITLES = {
+    "Command center": "Command center",
+    "Discovery": "Discovery",
+    "Company watchlist": "Watchlist",
+    "Research / decisions": "Decisions",
+    "SEC filing research": "SEC filings",
+    "Research journal": "Journal",
+    "Research lab": "Research lab",
+    "Manual portfolio": "Portfolio",
+    "Monitoring": "Monitoring",
+    "Engine acceptance": "Engine",
+    "Provider settings": "Providers",
+    "Backup and recovery": "Recovery",
+    "Application recovery": "Bundle recovery",
+}
 WORKSPACE_LABELS = {
-    "Engine acceptance": "Evidence / Engine",
-    "SEC filing research": "Research / SEC",
-    "Research journal": "Research / Journal",
-    "Company watchlist": "Research / Watchlist",
-    "Research / decisions": "Research / Decisions",
-    "Discovery": "Research / Discovery",
-    "Research lab": "Research / Lab",
-    "Manual portfolio": "Holdings / Portfolio",
-    "Monitoring": "Holdings / Monitoring",
-    "Backup and recovery": "System / Recovery",
-    "Provider settings": "System / Providers",
-    "Application recovery": "System / Bundle recovery",
+    "Command center": "HOME · Command center",
+    "Discovery": "DSC · Discovery",
+    "Company watchlist": "WCH · Watchlist",
+    "Research / decisions": "DEC · Decisions",
+    "SEC filing research": "SEC · SEC filings",
+    "Research journal": "JRN · Journal",
+    "Research lab": "LAB · Research lab",
+    "Manual portfolio": "PRT · Portfolio",
+    "Monitoring": "MON · Monitoring",
+    "Engine acceptance": "ENG · Engine",
+    "Provider settings": "PRV · Providers",
+    "Backup and recovery": "BAK · Recovery",
+    "Application recovery": "APP · Bundle recovery",
+}
+WORKSPACE_PURPOSE = {
+    "Command center": "Portfolio, monitoring and research pipeline at a glance",
+    "Discovery": "Screen and rank user-declared candidate snapshots",
+    "Company watchlist": "Track companies and route to research",
+    "Research / decisions": "Risk policy, research, valuation and trade plans",
+    "SEC filing research": "Explicit SEC EDGAR filing metadata lookups",
+    "Research journal": "Append-only swing and long-term research notes",
+    "Research lab": "Synthetic Qlib / skfolio / Kronos experiments",
+    "Manual portfolio": "Manual ledger, FIFO lots and GBP reporting",
+    "Monitoring": "Stop, target and thesis rules with saved alerts",
+    "Engine acceptance": "NautilusTrader synthetic acceptance evidence",
+    "Provider settings": "Optional FMP key and display-only prices",
+    "Backup and recovery": "Journal backup and verified recovery",
+    "Application recovery": "Whole application bundle backup",
 }
 
 
@@ -114,250 +170,8 @@ def _render_journal(default_root: Path) -> None:
     render(selected)
 
 
-_TERMINAL_CSS = """
-:root {
-  color-scheme: dark;
-  --edge-void: #050505;
-  --edge-panel: #10100d;
-  --edge-rule: #6e6045;
-  --edge-ink: #ffc15a;
-  --edge-muted: #c6ad83;
-  --edge-success: #70e49a;
-  --edge-amber: #ffb000;
-  --edge-cyan: #65dce8;
-  --edge-alert: #ff817a;
-  --edge-mono: "Cascadia Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
-}
+_TERMINAL_CSS = BASE_CSS + TERMINAL_CSS
 
-html, body {
-  font-family: var(--edge-mono);
-}
-[data-testid="stAppViewContainer"] {
-  color: var(--edge-ink);
-  background-color: var(--edge-void);
-}
-[data-testid="stHeader"] { background: transparent; }
-[data-testid="stAppDeployButton"] { display: none; }
-[data-baseweb="input"], [data-baseweb="input"] > div,
-[data-baseweb="textarea"], [data-baseweb="select"] > div {
-  border-radius: 0 !important;
-}
-[data-testid="stMainBlockContainer"] {
-  max-width: 1600px;
-  padding: 2.5rem 1.5rem 1.5rem;
-}
-[data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"] {
-  gap: 0.65rem;
-}
-[data-testid="stColumn"] { min-width: 0; }
-.st-key-edge_workspace [role="radiogroup"] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-}
-.st-key-edge_workspace label { min-height: 2rem; }
-.st-key-edge_pane_row > [data-testid="stHorizontalBlock"],
-.st-key-edge_output_row > [data-testid="stHorizontalBlock"] {
-  display: flex;
-}
-.st-key-edge_acceptance, .st-key-edge_fixture,
-.st-key-edge_recent, .st-key-edge_history,
-[data-testid="stForm"],
-[data-testid="stExpander"] details {
-  border: 1px solid var(--edge-rule);
-  border-radius: 0;
-  box-shadow: none;
-  background: var(--edge-void);
-}
-.stApp h1, .stApp h2, .stApp h3,
-.stApp button, .stApp input, .stApp textarea, .stApp select,
-.stApp p, .stApp label, .stApp li {
-  font-family: var(--edge-mono);
-}
-.stApp h1, .stApp h2, .stApp h3 {
-  color: var(--edge-ink);
-  font-variant-numeric: tabular-nums;
-}
-.stApp h1 {
-  font-size: clamp(1.25rem, 2vw, 1.7rem);
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-  padding-block-end: 0.4rem;
-  border-block-end: 1px solid var(--edge-rule);
-  overflow-wrap: normal;
-  word-break: normal;
-}
-.stApp h2 {
-  margin: 0;
-  padding: 0 0 0.45rem;
-  border-block-end: 1px solid var(--edge-rule);
-  color: var(--edge-cyan);
-  font-size: 0.95rem;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
-}
-.stApp h3 {
-  font-size: 0.95rem;
-  color: var(--edge-cyan);
-  margin-block: 0.65rem 0.25rem;
-}
-.stApp p, .stApp label, .stApp li, [data-testid="stCaptionContainer"] {
-  color: var(--edge-ink);
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-[data-testid="stCaptionContainer"],
-[data-testid="stCaptionContainer"] p {
-  color: var(--edge-muted);
-  opacity: 1;
-}
-[data-testid="stCaptionContainer"] p { font-size: 0.8rem; }
-[data-testid="stMetric"] {
-  padding: 0.35rem 0;
-  border-block-end: 1px solid var(--edge-rule);
-}
-[data-testid="stMetricLabel"] { color: var(--edge-muted); }
-[data-testid="stMetricLabel"] p { white-space: normal; }
-[data-testid="stMetricValue"] {
-  color: var(--edge-ink);
-  font-size: 1.4rem;
-  font-family: var(--edge-mono);
-  font-variant-numeric: tabular-nums;
-}
-[data-testid="stDataFrame"] {
-  border: 1px solid var(--edge-rule);
-  border-radius: 0;
-}
-[data-testid="stDataFrame"] [role="columnheader"] {
-  color: var(--edge-cyan);
-  font-family: var(--edge-mono);
-}
-[data-testid="stAlert"] {
-  border: 1px solid var(--edge-rule);
-  border-radius: 0;
-}
-[data-testid="stAlertContainer"] {
-  color: var(--edge-ink) !important;
-  background: var(--edge-panel) !important;
-  border-radius: 0 !important;
-  border: 0 !important;
-  padding: 0.55rem 0.65rem;
-}
-[data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]) {
-  border-color: var(--edge-cyan) !important;
-}
-[data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) {
-  border-color: var(--edge-success) !important;
-}
-[data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) {
-  border-color: var(--edge-amber) !important;
-}
-[data-testid="stAlert"]:has([data-testid="stAlertContentError"]) {
-  border-color: var(--edge-alert) !important;
-}
-[data-testid="stAlertContentInfo"] { color: var(--edge-cyan) !important; }
-[data-testid="stAlertContentSuccess"] { color: var(--edge-success) !important; }
-[data-testid="stAlertContentWarning"] { color: var(--edge-amber) !important; }
-[data-testid="stAlertContentError"] { color: var(--edge-alert) !important; }
-[data-testid="stAlertContentInfo"] p { color: var(--edge-cyan); }
-[data-testid="stAlertContentSuccess"] p { color: var(--edge-success); }
-[data-testid="stAlertContentWarning"] p { color: var(--edge-ink); }
-[data-testid="stAlertContentError"] p { color: var(--edge-alert); }
-.stButton > button, [data-testid="stDownloadButton"] > button,
-[data-testid="stFormSubmitButton"] > button {
-  min-height: 2.25rem;
-  color: var(--edge-void);
-  background: var(--edge-cyan);
-  border: 1px solid var(--edge-cyan);
-  border-radius: 0;
-  font-family: var(--edge-mono);
-}
-.stButton > button p, [data-testid="stDownloadButton"] > button p,
-[data-testid="stFormSubmitButton"] > button p { color: inherit; }
-.stButton > button:hover, [data-testid="stDownloadButton"] > button:hover,
-[data-testid="stFormSubmitButton"] > button:hover {
-  color: var(--edge-void);
-  background: var(--edge-ink);
-  border-color: var(--edge-ink);
-}
-.stButton > button[kind="primary"],
-[data-testid="stFormSubmitButton"] > button[kind="primaryFormSubmit"] {
-  color: var(--edge-void);
-  background: var(--edge-amber);
-  border-color: var(--edge-amber);
-}
-.stButton > button[kind="primary"]:hover,
-[data-testid="stFormSubmitButton"] > button[kind="primaryFormSubmit"]:hover {
-  background: var(--edge-ink);
-  border-color: var(--edge-ink);
-}
-.stButton > button:disabled,
-[data-testid="stFormSubmitButton"] > button:disabled {
-  color: var(--edge-muted);
-  background: var(--edge-panel);
-  border-color: var(--edge-rule);
-}
-:focus-visible {
-  outline: 2px solid var(--edge-cyan) !important;
-  outline-offset: 3px;
-}
-[data-testid="stTabs"] button[aria-selected="true"] {
-  color: var(--edge-amber);
-  border-block-end-color: var(--edge-amber);
-}
-[data-baseweb="tab-list"] { gap: 1rem; }
-[data-baseweb="tab"] { min-height: 2rem; padding-inline: 0.25rem; }
-input, textarea, [data-baseweb="select"] > div {
-  color: var(--edge-ink) !important;
-  background-color: var(--edge-panel) !important;
-  border-color: var(--edge-rule) !important;
-  border-radius: 0 !important;
-  caret-color: var(--edge-amber);
-}
-a { color: var(--edge-cyan); text-underline-offset: 0.2em; }
-a:hover { color: var(--edge-amber); }
-::selection { color: var(--edge-void); background: var(--edge-amber); }
-::-webkit-scrollbar { width: 12px; height: 12px; }
-::-webkit-scrollbar-track { background: var(--edge-void); }
-::-webkit-scrollbar-thumb {
-  background: var(--edge-rule);
-  border: 3px solid var(--edge-void);
-  border-radius: 0;
-}
-/* Native columns retain reading order; stack panes before their copy gets cramped. */
-@media (max-width: 1050px) {
-  .st-key-edge_pane_row > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"],
-  .st-key-edge_output_row > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"],
-  .st-key-edge_pane_row > [data-testid="stHorizontalBlock"],
-  .st-key-edge_output_row > [data-testid="stHorizontalBlock"] {
-    flex-direction: column;
-  }
-  .st-key-edge_pane_row [data-testid="stColumn"],
-  .st-key-edge_output_row [data-testid="stColumn"] {
-    width: 100%;
-    flex: 1 1 100%;
-  }
-  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_acceptance),
-  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_recent) {
-    flex-direction: column;
-  }
-  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_acceptance) > [data-testid="stColumn"],
-  [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_recent) > [data-testid="stColumn"] {
-    width: 100%;
-    flex: 1 1 100%;
-  }
-}
-@media (max-width: 700px) {
-  [data-testid="stMainBlockContainer"] { padding: 1rem 1rem 2rem; }
-  .stApp h1 { font-size: 1.25rem; }
-  .stButton > button, [data-testid="stDownloadButton"] > button,
-  [data-testid="stFormSubmitButton"] > button { min-height: 2.75rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto !important; }
-  .stButton > button, input, textarea { transition: none !important; }
-}
-"""
 
 
 def _check_record(record: dict) -> None:
@@ -403,6 +217,39 @@ def _event_table(rows: list | tuple, empty_message: str) -> None:
         st.info(empty_message)
 
 
+def _ns_iso(value: object) -> str | None:
+    try:
+        return datetime.fromtimestamp(int(value) / 1e9, tz=UTC).isoformat()
+    except (TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
+def _quote_rows(dataset) -> list[dict]:
+    return [{"t": _ns_iso(q.timestamp_ns), "bid": q.bid, "ask": q.ask} for q in dataset.quotes]
+
+
+def _execution_chart(manifest: dict, outcome: dict, *, key: str) -> None:
+    """Recorded fills over the fixture quotes; drawn only when the run's dataset checksum
+    matches the bundled fixture, so no quote series is ever paired with the wrong run."""
+    dataset = demo_dataset()
+    if manifest.get("dataset_checksum") != dataset.checksum:
+        st.caption("Execution tape unavailable: run dataset differs from the bundled fixture.")
+        return
+    fills = [
+        {"t": _ns_iso(f.get("filled_at_ns")), "price": f.get("price"), "side": f.get("side"),
+         "shown": f"{f.get('side', '')} {f.get('quantity', '')} @ {f.get('price', '')} "
+                  f"{f.get('currency', '')} · fee {f.get('fee', '')}"}
+        for f in outcome.get("fills", []) if isinstance(f, dict)
+    ]
+    html_block(provenance("synthetic", "engine"))
+    charts.show(
+        charts.execution_tape(_quote_rows(dataset), fills, unit=dataset.price_unit,
+                              title="Execution tape · synthetic bid/ask with recorded fills"),
+        alt_text="Step chart of synthetic bid and ask quotes with recorded engine fills marked",
+        key=f"{key}-tape",
+    )
+
+
 def _render_run(record: dict, *, key: str) -> None:
     _check_record(record)
     manifest = record["manifest"]
@@ -437,6 +284,7 @@ def _render_run(record: dict, *, key: str) -> None:
         st.caption(
             "Values above are recorded Nautilus engine outputs, not UI calculations or real investment performance."
         )
+        _execution_chart(manifest, outcome, key=key)
         orders, fills, rejections, positions = st.tabs(
             ["Orders", "Fills", "Rejections", "Positions"]
         )
@@ -505,6 +353,48 @@ def _history(output_dir: Path) -> None:
         )
 
 
+def _masthead() -> None:
+    """Static chrome; the only dynamic text is the render time and fixed labels."""
+    from datetime import UTC, datetime
+
+    rendered = datetime.now(UTC).strftime("%H:%M")
+    html_block(
+        '<div class="edge-mast">'
+        '<div class="edge-mast-brand">'
+        '<span class="edge-mast-logo" aria-hidden="true">EDGE</span>'
+        '<span class="edge-mast-name"><b role="heading" aria-level="1">'
+        'EDGE // Research workbench</b>'
+        "<span>Equity Discovery &amp; Growth Engine · local decision support</span></span>"
+        "</div>"
+        '<div class="edge-mast-cells">'
+        '<div class="edge-mast-cell"><small>Execution</small>'
+        '<span class="edge-off">Live trading disabled</span></div>'
+        '<div class="edge-mast-cell"><small>Market feed</small>'
+        "<span>None · user-declared data</span></div>"
+        '<div class="edge-mast-cell"><small>Build status</small>'
+        "<span>Pre-production</span></div>"
+        "</div>"
+        '<div class="edge-mast-clock"><small>RENDERED UTC</small>'
+        f'<span>{esc(rendered)}<i class="edge-cursor" aria-hidden="true"></i></span></div>'
+        "</div>"
+    )
+
+
+def _breadcrumb(page: str) -> None:
+    html_block(
+        '<div class="edge-crumb">'
+        f"<span>{esc(WORKSPACE_GROUPS[page])}</span>"
+        '<span class="edge-crumb-sep">›</span>'
+        f"<b>{esc(WORKSPACE_CODES[page])} {esc(WORKSPACE_TITLES[page])}</b>"
+        '<span class="edge-crumb-sep">│</span>'
+        f"<span>{esc(WORKSPACE_PURPOSE[page])}</span>"
+        '<span class="edge-crumb-sep">│</span>'
+        "<span>Production status: unfinished — external integration and "
+        "real-market acceptance gates remain open</span>"
+        "</div>"
+    )
+
+
 def main(output_dir: Path | None = None) -> None:
     """Dispatch native navigation; rendering alone never runs an engine or lookup."""
     output_dir = (
@@ -513,12 +403,11 @@ def main(output_dir: Path | None = None) -> None:
     _apply_navigation_request(_journal_root(output_dir))
     st.set_page_config(page_title="EDGE · Research workbench", layout="wide")
     st.markdown(f"<style>{_TERMINAL_CSS}</style>", unsafe_allow_html=True)
-    st.title("EDGE // Research workbench")
-    st.caption(
-        "Local decision support · User-declared research and holdings · Live trading disabled"
-    )
+    if st.session_state.get("edge_workspace") not in WORKSPACES:
+        st.session_state.pop("edge_workspace", None)
+    _masthead()
     page = st.radio(
-        "Workspace",
+        "Function",
         list(WORKSPACES),
         horizontal=True,
         key="edge_workspace",
@@ -526,10 +415,16 @@ def main(output_dir: Path | None = None) -> None:
         on_change=_stop_monitoring,
         args=(output_dir,),
     )
-    st.caption(
-        f"Active: {WORKSPACE_GROUPS[page]} / {page} · "
-        "Production status: unfinished — external integration and real-market acceptance gates remain open."
-    )
+    _breadcrumb(page)
+    from edge import ui_grid
+
+    ui_grid.begin_page()
+    ui_grid.load_into_session(output_dir)
+    _render_workspace(page, output_dir)
+    ui_grid.toolbar(output_dir)
+
+
+def _render_workspace(page: str, output_dir: Path) -> None:
     if page != "Monitoring":
         st.session_state[f"edge_monitor_enabled_{output_dir.resolve()}"] = False
         st.session_state[f"edge_monitor_active_{output_dir.resolve()}"] = False
@@ -567,6 +462,10 @@ def main(output_dir: Path | None = None) -> None:
             "Application recovery": "dashboard_application_backup",
         }[page]
         import_module(f"edge.{module}").render(output_dir)
+    elif page == "Command center":
+        from edge.dashboard_home import render
+
+        render(output_dir, _journal_root(output_dir))
     else:
         _workbench(output_dir)
 
@@ -580,139 +479,165 @@ def _workbench(output_dir: Path) -> None:
         "cannot be used as simulation input."
     )
     dataset = demo_dataset()
-    with st.container(key="edge_pane_row"):
-        acceptance, fixture = st.columns(2, gap="small")
-    with acceptance, st.container(border=True, key="edge_acceptance"):
-        st.header("Engine acceptance")
-        ready = False
-        try:
-            installed = simulation_service.engine_version()
-            from nautilus_trader.backtest import BacktestEngine
+    drawn = {"runs": False}  # panel order is user-configurable
 
-            st.success(
-                f"Engine doctor: NautilusTrader {installed} · native {BacktestEngine.__name__} import verified"
-            )
-            st.caption(
-                "Doctor checks version and import only. Use the fixture buttons below to test engine behavior."
-            )
-            ready = True
-        except (EdgeError, OSError, sqlite3.Error, ImportError) as error:
-            st.error(
-                f"Engine doctor failed: {error}. Use the project's isolated simulation environment."
-            )
-
-        st.caption(
-            "Each action runs one local acceptance scenario and saves its evidence."
-        )
-        # Saturated terminal keys, but native buttons: no unimplemented F-key claims.
-        do_round_trip = st.button(
-            "Run synthetic round-trip",
-            key="run_round_trip",
-            type="primary",
-            disabled=not ready,
-            width="stretch",
-        )
-        do_rejection = st.button(
-            "Run engine risk-rejection",
-            key="run_risk_rejection",
-            disabled=not ready,
-            width="stretch",
-        )
-        st.caption("Keyboard: Tab to a control; Enter or Space activates a button.")
-        if do_round_trip or do_rejection:
-            scenario = "round-trip" if do_round_trip else "risk-rejection"
+    def _acceptance(ctx: PanelContext) -> None:
+        with st.container(border=True, key="edge_acceptance"):
+            st.header("Engine acceptance")
+            ready = False
             try:
-                with st.spinner(
-                    f"Running local {scenario} acceptance and persisting evidence…"
-                ):
-                    record = simulation_service.run(
-                        dataset,
-                        SimulationConfig(scenario=scenario),
-                        output_dir,
-                    )
-                    _check_record(record)
-                st.session_state[RECENT_RUN_KEY] = record
-            except READ_ERRORS as error:
+                installed = simulation_service.engine_version()
+                from nautilus_trader.backtest import BacktestEngine
+
+                st.success(
+                    f"Engine doctor: NautilusTrader {installed} · native {BacktestEngine.__name__} import verified"
+                )
+                st.caption(
+                    "Doctor checks version and import only. Use the fixture buttons below to test engine behavior."
+                )
+                ready = True
+            except (EdgeError, OSError, sqlite3.Error, ImportError) as error:
                 st.error(
-                    f"Acceptance attempt failed: {error}. No successful replacement result "
-                    "was created. Any previous session result remains displayed below."
+                    f"Engine doctor failed: {error}. Use the project's isolated simulation environment."
                 )
 
-    with fixture, st.container(border=True, key="edge_fixture"):
-        st.header("Synthetic fixture / provenance")
-        st.write(f"**Instrument:** {dataset.instrument_id} — {dataset.company_name}")
-        st.caption(
-            f"Source: {dataset.source} · Fixture provenance timestamp: {dataset.retrieved_at} · "
-            f"Currency / quote unit: {dataset.currency} / {dataset.price_unit}"
-        )
-        st.caption(
-            "Quote event timestamps are historical fixture inputs, not current prices. "
-            "Fixed bid/ask quotes; no market impact, latency or queue-position realism. "
-            "Corporate actions: not applicable to this synthetic instrument."
-        )
-        with st.expander("Synthetic quote input and fixed acceptance configuration"):
-            st.write(f"Dataset checksum: `{dataset.checksum}`")
-            st.dataframe(
-                [
-                    {
-                        "event_timestamp_ns": quote.timestamp_ns,
-                        "bid": str(quote.bid),
-                        "ask": str(quote.ask),
-                        "bid_size": quote.bid_size,
-                        "ask_size": quote.ask_size,
-                    }
-                    for quote in dataset.quotes
-                ],
-                hide_index=True,
+            st.caption(
+                "Each action runs one local acceptance scenario and saves its evidence."
+            )
+            # Saturated terminal keys, but native buttons: no unimplemented F-key claims.
+            do_round_trip = st.button(
+                "Run synthetic round-trip",
+                key="run_round_trip",
+                type="primary",
+                disabled=not ready,
                 width="stretch",
             )
-            config = SimulationConfig()
-            st.write(
-                {
-                    "initial_cash_synthetic_USD": str(config.initial_cash),
-                    "order_quantity": config.quantity,
-                    "commission_per_order_synthetic_USD": str(
-                        config.commission_per_order
-                    ),
-                }
+            do_rejection = st.button(
+                "Run engine risk-rejection",
+                key="run_risk_rejection",
+                disabled=not ready,
+                width="stretch",
             )
-            st.caption(
-                "Fixed service defaults, not user risk preferences. Risk-rejection uses the engine's deliberately restrictive acceptance policy."
-            )
-        with st.expander("Planning context · pending"):
-            st.info("Future components — pending, not active functionality.")
-            st.write(
-                "Discovery, company research, portfolio workflows and validated market-data "
-                "ingestion remain future work."
-            )
-            st.write(
-                "An opt-in OpenBB v5 adapter can retrieve SEC filing metadata through "
-                "the SEC filing research workspace, `edge sec-filings TICKER` or a Python API call. "
-                "It has not yet been "
-                "verified against a live SEC response. Market-price ingestion and Qlib "
-                "research remain future work."
-            )
-            st.caption(
-                "No live mode, broker setup, user risk settings, code execution or uploaded strategy controls."
-            )
+            st.caption("Keyboard: Tab to a control; Enter or Space activates a button.")
+            if do_round_trip or do_rejection:
+                scenario = "round-trip" if do_round_trip else "risk-rejection"
+                try:
+                    with st.spinner(
+                        f"Running local {scenario} acceptance and persisting evidence…"
+                    ):
+                        record = simulation_service.run(
+                            dataset,
+                            SimulationConfig(scenario=scenario),
+                            output_dir,
+                        )
+                        _check_record(record)
+                    st.session_state[RECENT_RUN_KEY] = record
+                except READ_ERRORS as error:
+                    st.error(
+                        f"Acceptance attempt failed: {error}. No successful replacement result "
+                        "was created. Any previous session result remains displayed below."
+                    )
+                else:
+                    if drawn["runs"]:  # a run pane above this one is now stale
+                        st.rerun()
 
-    with st.container(key="edge_output_row"):
-        recent, history = st.columns(2, gap="small")
-    with recent, st.container(border=True, key="edge_recent"):
-        st.header("Most recent run in this session")
-        if RECENT_RUN_KEY not in st.session_state:
-            st.info(
-                "No run in this session. Choose an acceptance scenario above, or inspect persisted history."
+    def _fixture(ctx: PanelContext) -> None:
+        with st.container(border=True, key="edge_fixture"):
+            st.header("Synthetic fixture / provenance")
+            st.write(f"**Instrument:** {dataset.instrument_id} — {dataset.company_name}")
+            st.caption(
+                f"Source: {dataset.source} · Fixture provenance timestamp: {dataset.retrieved_at} · "
+                f"Currency / quote unit: {dataset.currency} / {dataset.price_unit}"
             )
-        else:
-            try:
-                _render_run(st.session_state[RECENT_RUN_KEY], key="recent")
-            except READ_ERRORS as error:
-                st.error(
-                    f"Current run evidence unavailable or corrupted: {error}. Inspect persisted evidence."
+            st.caption(
+                "Quote event timestamps are historical fixture inputs, not current prices. "
+                "Fixed bid/ask quotes; no market impact, latency or queue-position realism. "
+                "Corporate actions: not applicable to this synthetic instrument."
+            )
+            html_block(provenance("synthetic"))
+            charts.show(
+                charts.execution_tape(_quote_rows(dataset), unit=dataset.price_unit,
+                                      title="Fixture quote stream · bid / ask spread"),
+                alt_text="Step chart of the synthetic fixture bid and ask quotes",
+                key="edge_fixture_tape",
+            )
+            with st.expander("Synthetic quote input and fixed acceptance configuration"):
+                st.write(f"Dataset checksum: `{dataset.checksum}`")
+                st.dataframe(
+                    [
+                        {
+                            "event_timestamp_ns": quote.timestamp_ns,
+                            "bid": str(quote.bid),
+                            "ask": str(quote.ask),
+                            "bid_size": quote.bid_size,
+                            "ask_size": quote.ask_size,
+                        }
+                        for quote in dataset.quotes
+                    ],
+                    hide_index=True,
+                    width="stretch",
                 )
-    with history, st.container(border=True, key="edge_history"):
-        _history(output_dir)
+                config = SimulationConfig()
+                st.write(
+                    {
+                        "initial_cash_synthetic_USD": str(config.initial_cash),
+                        "order_quantity": config.quantity,
+                        "commission_per_order_synthetic_USD": str(
+                            config.commission_per_order
+                        ),
+                    }
+                )
+                st.caption(
+                    "Fixed service defaults, not user risk preferences. Risk-rejection uses the engine's deliberately restrictive acceptance policy."
+                )
+            with st.expander("Planning context · pending"):
+                st.info("Future components — pending, not active functionality.")
+                st.write(
+                    "Discovery, company research, portfolio workflows and validated market-data "
+                    "ingestion remain future work."
+                )
+                st.write(
+                    "An opt-in OpenBB v5 adapter can retrieve SEC filing metadata through "
+                    "the SEC filing research workspace, `edge sec-filings TICKER` or a Python API call. "
+                    "It has not yet been "
+                    "verified against a live SEC response. Market-price ingestion and Qlib "
+                    "research remain future work."
+                )
+                st.caption(
+                    "No live mode, broker setup, user risk settings, code execution or uploaded strategy controls."
+                )
+
+    def _recent(ctx: PanelContext) -> None:
+        drawn["runs"] = True
+        with st.container(border=True, key="edge_recent"):
+            st.header("Most recent run in this session")
+            if RECENT_RUN_KEY not in st.session_state:
+                st.info(
+                    "No run in this session. Choose an acceptance scenario above, or inspect persisted history."
+                )
+            else:
+                try:
+                    _render_run(st.session_state[RECENT_RUN_KEY], key="recent")
+                except READ_ERRORS as error:
+                    st.error(
+                        f"Current run evidence unavailable or corrupted: {error}. Inspect persisted evidence."
+                    )
+
+    def _history_pane(ctx: PanelContext) -> None:
+        drawn["runs"] = True
+        with st.container(border=True, key="edge_history"):
+            _history(output_dir)
+
+    grid("engine", [
+        Panel("accept", "ENG", "Engine acceptance", _acceptance, w=6, h=12, min_w=4,
+              fit=True, framed=False),
+        Panel("fixture", "FIX", "Synthetic fixture / provenance", _fixture, w=6, h=12,
+              min_w=4, fit=True, framed=False),
+        Panel("recent", "RUN", "Most recent run in this session", _recent, w=6, h=12,
+              min_w=4, fit=True, framed=False),
+        Panel("history", "HIS", "Persisted run history", _history_pane, w=6, h=12,
+              min_w=4, fit=True, framed=False),
+    ])
 
 
 if __name__ == "__main__":

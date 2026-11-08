@@ -124,11 +124,25 @@ class MonitoringStore:
             con.close()
 
     def quotes(self) -> dict[tuple[str, str], PriceQuote]:
+        output: dict[tuple[str, str], PriceQuote] = {}
+        for identity, quote in self._quote_rows():
+            if identity not in output or quote.as_of >= output[identity].as_of:
+                output[identity] = quote
+        return output
+
+    def quote_history(self) -> dict[tuple[str, str], tuple[PriceQuote, ...]]:
+        """Every recorded manual quote per instrument, oldest observation first (read-only)."""
+        output: dict[tuple[str, str], list[PriceQuote]] = {}
+        for identity, quote in self._quote_rows():
+            output.setdefault(identity, []).append(quote)
+        return {key: tuple(sorted(items, key=lambda q: q.as_of)) for key, items in output.items()}
+
+    def _quote_rows(self) -> list[tuple[tuple[str, str], PriceQuote]]:
         con = self._open()
         if con is None:
-            return {}
+            return []
         try:
-            output = {}
+            output = []
             for symbol, market, payload in con.execute(
                 "SELECT symbol,market,payload FROM quotes ORDER BY rowid"
             ):
@@ -140,9 +154,7 @@ class MonitoringStore:
                     ManualProvenance(provenance["reference"],
                                      datetime.fromisoformat(provenance["declared_at"])),
                 )
-                identity = (symbol, market)
-                if identity not in output or quote.as_of >= output[identity].as_of:
-                    output[identity] = quote
+                output.append(((symbol, market), quote))
             return output
         finally:
             con.close()

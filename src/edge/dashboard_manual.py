@@ -50,14 +50,60 @@ def literal(value):
     return value
 
 
+NOT_RECORDED = "Not recorded"
+_MAX_ROWS = 300
+
+
+def _label(path: tuple[str, ...]) -> str:
+    return " › ".join(part.replace("_", " ") for part in path)
+
+
+def _cell(value) -> str:
+    """One-line display text. Newlines are folded so escaped user text can never
+    terminate the surrounding HTML block and be re-parsed as Markdown."""
+    if value is None:
+        return NOT_RECORDED
+    text = str(value)
+    return " ⏎ ".join(part for part in text.replace("\r", "\n").split("\n")) if text else "—"
+
+
+def readout_rows(value) -> list[tuple[str, str]]:
+    """Flatten ``literal(value)`` into exact label/value pairs (display only)."""
+    rows: list[tuple[str, str]] = []
+
+    def walk(item, path: tuple[str, ...]) -> None:
+        if isinstance(item, dict):
+            if not item:
+                rows.append((_label(path) or "value", "None declared"))
+            for name, child in item.items():
+                walk(child, (*path, name))
+        elif isinstance(item, list):
+            if not item:
+                rows.append((_label(path) or "value", "None declared"))
+            elif all(not isinstance(child, (dict, list)) for child in item):
+                rows.append((_label(path) or "value", "; ".join(_cell(child) for child in item)))
+            else:
+                for index, child in enumerate(item, 1):
+                    walk(child, (*path[:-1], f"{path[-1] if path else 'item'} #{index}"))
+        else:
+            rows.append((_label(path) or "value", _cell(item)))
+
+    walk(literal(value), ())
+    return rows
+
+
 def readout(value) -> None:
-    """No user-authored string passes through Markdown or raw HTML."""
+    """Escaped label/value grid; no user-authored string is parsed as Markdown/HTML."""
+    from edge.ui_kit import kv_grid
+
     data = literal(value)
-    if isinstance(data, dict):
-        for name, item in data.items():
-            st.text(f"{name}: {item}")
-    else:
+    if not isinstance(data, (dict, list)):
         st.text(str(data))
+        return
+    rows = readout_rows(value)
+    kv_grid(rows[:_MAX_ROWS], columns=2)
+    if len(rows) > _MAX_ROWS:
+        st.caption(f"Showing the first {_MAX_ROWS} of {len(rows)} recorded fields.")
 
 
 def boundary(title: str) -> None:

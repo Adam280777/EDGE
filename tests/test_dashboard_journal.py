@@ -96,18 +96,19 @@ def test_startup_navigation_and_unsubmitted_draft_never_write(tmp_path):
     root = tmp_path / "not-created"
     app = journal(root)
     assert app.radio(key="edge_workspace").options == [
-        "Evidence / Engine",
-        "Research / SEC",
-        "Research / Journal",
-        "Research / Watchlist",
-        "Research / Decisions",
-        "Research / Discovery",
-        "Research / Lab",
-        "Holdings / Portfolio",
-        "Holdings / Monitoring",
-        "System / Recovery",
-        "System / Bundle recovery",
-        "System / Providers",
+        "HOME · Command center",
+        "DSC · Discovery",
+        "WCH · Watchlist",
+        "DEC · Decisions",
+        "SEC · SEC filings",
+        "JRN · Journal",
+        "LAB · Research lab",
+        "PRT · Portfolio",
+        "MON · Monitoring",
+        "ENG · Engine",
+        "PRV · Providers",
+        "BAK · Recovery",
+        "APP · Bundle recovery",
     ]
     assert app.radio(key="edge_workspace").value == "Research journal"
     assert "No saved entries" in all_text(app)

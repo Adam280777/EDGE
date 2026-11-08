@@ -30,8 +30,11 @@ hiddenimports = [
     "edge.dashboard_research_lab", "edge.research_templates",
     "edge.research_workers", "edge.desktop_research_job",
     "edge.portfolio_optimization", "edge.desktop_research_check",
+    "edge.ui_kit", "edge.ui_theme", "edge.ui_charts", "edge.dashboard_home",
+    "edge.layout", "edge.layout_store", "edge.ui_grid",
 ]
-for package in ("streamlit", "nautilus_trader", "openbb_core", "openbb_sec", "webview"):
+# Altair ships the Vega-Lite schema used to validate every terminal chart.
+for package in ("streamlit", "altair", "nautilus_trader", "openbb_core", "openbb_sec", "webview"):
     datas += collect_data_files(package, include_py_files=False)
     binaries += collect_dynamic_libs(package)
     hiddenimports += collect_submodules(

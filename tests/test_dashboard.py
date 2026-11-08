@@ -16,16 +16,40 @@ from edge.run_store import RunStore
 APP = Path(__file__).resolve().parents[1] / "app.py"
 
 
-def dashboard(tmp_path: Path) -> AppTest:
+def dashboard(tmp_path: Path, workspace: str = "Engine acceptance") -> AppTest:
     # Invoke the actual entry point with isolated storage, without adding a path
     # picker, environment override, or strategy/code-upload surface to the UI.
+    # The Command Center is the landing page; these engine tests open ENG directly.
     script = (
         "import runpy\n"
         "from pathlib import Path\n"
         f"namespace = runpy.run_path({str(APP)!r})\n"
         f"namespace['main'](Path({str(tmp_path)!r}))\n"
     )
-    return AppTest.from_string(script, default_timeout=60).run()
+    app = AppTest.from_string(script, default_timeout=60)
+    app.session_state["edge_workspace"] = workspace
+    return app.run()
+
+
+def test_command_center_is_the_read_only_landing_page(tmp_path, monkeypatch) -> None:
+    def forbidden(*args, **kwargs):
+        pytest.fail("Rendering must not invoke the engine")
+
+    monkeypatch.setattr(simulation_service, "run", forbidden)
+    script = (
+        "import runpy\n"
+        "from pathlib import Path\n"
+        f"namespace = runpy.run_path({str(APP)!r})\n"
+        f"namespace['main'](Path({str(tmp_path)!r}))\n"
+    )
+    app = AppTest.from_string(script, default_timeout=60).run()
+    assert not app.exception
+    assert app.radio(key="edge_workspace").value == "Command center"
+    body = text(app)
+    assert "Book overview" in body
+    assert "Live trading disabled" in body
+    assert "Unavailable" in body
+    assert not list(tmp_path.rglob("*"))
 
 
 def text(app: AppTest) -> str:

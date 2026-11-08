@@ -176,7 +176,7 @@ def test_full_app_lab_route_does_not_create_storage(tmp_path):
     app.run()
     assert not app.exception
     assert app.radio(key="edge_workspace").value == "Research lab"
-    assert "Research / Lab" in app.radio(key="edge_workspace").options
+    assert "LAB · Research lab" in app.radio(key="edge_workspace").options
     assert any("Research lab / experimental workflows" in item.value for item in app.header)
     assert not root.exists()
 

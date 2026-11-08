@@ -358,6 +358,11 @@ It is **user-reported manual acceptance**, not automated evidence or an
 independently captured execution trace. The earlier harness failures above remain
 recorded; they are not reclassified as passes. No runtime rebuild is implied.
 
+Published source commit `0922789` passed offline Windows CI (1,569 passed,
+4 fresh-checkout skips). Manual-acceptance documentation commit `9f730ec`
+also passed CI. These checks do not replace the separately scoped runtime,
+independent QA or user-reported manual evidence.
+
 Private FMP retention/derived-use clarification and UK coverage, corporate-action,
 calendar and PIT accuracy gates remain unchanged. Manual workflow acceptance
 does not establish every requested market-data integration as production-ready.

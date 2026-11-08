@@ -11,6 +11,7 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from edge.application_storage_lock import storage_write_lock
 from edge.data.market_data import MarketDataConfig, validate_config
 
 PROVIDERS = ("fmp",)  # Implemented registry only; not a promise of other adapters.
@@ -112,25 +113,24 @@ def save_settings(data_root: Path, settings: ProviderSettings) -> None:
     path = settings_path(data_root)
     temporary = None
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            dir=path.parent,
-            delete=False,
-            prefix=".provider-",
-            suffix=".tmp",
-        ) as stream:
-            temporary = Path(stream.name)
-            json.dump(asdict(settings), stream, allow_nan=False)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        with storage_write_lock(path.parent.parent):
+            try:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                with tempfile.NamedTemporaryFile(
+                    mode="w",
+                    encoding="utf-8",
+                    dir=path.parent,
+                    delete=False,
+                    prefix=".provider-",
+                    suffix=".tmp",
+                ) as stream:
+                    temporary = Path(stream.name)
+                    json.dump(asdict(settings), stream, allow_nan=False)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.replace(temporary, path)
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
     except Exception:
         raise SettingsError() from None
-    finally:
-        if temporary is not None:
-            try:
-                temporary.unlink(missing_ok=True)
-            except OSError:
-                raise SettingsError() from None

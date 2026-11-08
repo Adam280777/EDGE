@@ -10,6 +10,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from edge.application_storage_lock import StorageLockError, storage_write_lock
 from edge.journal import (
     Horizon,
     JournalDraft,
@@ -236,12 +237,16 @@ class JournalStore:
             draft.invalidation,
             canonical_json(document["sources"]),
         )
-        if not self._exists() and self._initialize(parameters):
-            return entry
-        # Another initializer may have won publication. Validate its database and
-        # append the same entry (no new ID or clock sample), never replace it.
-        with self._connect(write=True) as connection:
-            connection.execute(_INSERT, parameters)
+        try:
+            with storage_write_lock(self.root.parent):
+                if not self._exists() and self._initialize(parameters):
+                    return entry
+                # Another initializer may have won publication. Validate its database and
+                # append the same entry (no new ID or clock sample), never replace it.
+                with self._connect(write=True) as connection:
+                    connection.execute(_INSERT, parameters)
+        except StorageLockError:
+            raise JournalStorageError(_STORAGE_MESSAGE) from None
         return entry
 
     def list_entries(

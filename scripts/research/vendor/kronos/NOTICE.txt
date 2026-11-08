@@ -1,0 +1,4 @@
+Kronos source from https://github.com/shiyu-coder/Kronos
+Commit 67b630e67f6a18c9e9be918d9b4337c960db1e9a
+Copyright upstream authors. Distributed under included MIT LICENSE.
+Unmodified selected model package only; no example scripts or data copied.

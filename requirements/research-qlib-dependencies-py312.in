@@ -1,0 +1,30 @@
+# Budget-only split of pyqlib 0.9.7 base metadata, excluding required gym sdist.
+# NOT a substitute for installing pyqlib or proof of complete Qlib resolution.
+# Gym 0.26.2 base dependencies below verified in tagged upstream setup.py.
+# No Gym extras/ROMs/simulators. Source build remains a separate approval gate.
+pyyaml
+numpy
+pandas>=0.24
+mlflow
+filelock>=3.16.0
+redis
+dill
+fire
+ruamel.yaml>=0.17.38
+python-redis-lock
+tqdm
+pymongo
+loguru
+lightgbm
+cvxpy
+joblib
+matplotlib
+jupyter
+nbconvert
+pyarrow
+pydantic-settings
+cloudpickle>=1.2.0
+gym-notices>=0.0.4
+# Proposed source-wheel build tooling: isolated, not installed.
+setuptools==80.9.0
+wheel==0.45.1

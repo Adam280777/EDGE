@@ -154,7 +154,7 @@ def test_actual_success_snapshot_decimal_flags_no_exports_no_relabel(tmp_path, o
     assert not snapshot.snapshot.storage_allowed
     assert "publication_time" in text(result)
     assert "unverified_no_exchange_calendar" in text(result)
-    assert "insufficient_endpoint_specific_adjustment_evidence" in text(result)
+    assert "documentary_close_fields_only_not_provider_verified" in text(result)
     assert SECRET not in text(result)
     assert SECRET not in repr(result.session_state)
     assert not result.get("download_button")

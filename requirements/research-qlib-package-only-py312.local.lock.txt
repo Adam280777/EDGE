@@ -1,0 +1,4 @@
+--only-binary=:all:
+--require-hashes
+--no-index
+pyqlib==0.9.7 --hash=sha256:dfbee9f0f3005fe805798e2a21c73b198272f1341d5f0d7771e127166faac08e

@@ -1,5 +1,6 @@
 """Diagnostic HWND targeting tests without opening windows or accessing the vault."""
 
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -58,3 +59,37 @@ def test_diagnostic_does_not_claim_close_without_owned_popup(monkeypatch):
     assert result["cancelled"] is True
     assert result["owned_dialog_closed"] is False
     user32.PostMessageW.assert_not_called()
+
+
+def test_cache_changes_preserve_broad_failure_fact_without_hiding_user_mutation(tmp_path):
+    cache = str(Path("userprofile/AppData/Local/Microsoft/Windows/Explorer/iconcache_16.db"))
+    facts = check._cancellation_changes(tmp_path, {}, {cache: "synthetic-hash"})
+    assert facts["public_cancellation_files_unchanged"] is False
+    assert facts["owned_data_settings_and_existing_files_unchanged"] is True
+    assert facts["known_explorer_cache_changes"] == [cache]
+    assert facts["unexpected_file_changes"] == []
+    data = str(Path("EDGE/data/portfolio.sqlite3"))
+    settings = str(Path("EDGE/settings/provider-v1.json"))
+    for path in (data, settings, "preexisting-sentinel", "profile/unknown.sqlite3"):
+        facts = check._cancellation_changes(tmp_path, {path: "before"}, {path: "after", cache: "new"})
+        assert facts["owned_data_settings_and_existing_files_unchanged"] is False
+        assert path in facts["unexpected_file_changes"]
+
+
+def test_hash_inventory_detects_same_size_content_change_and_deletion(tmp_path):
+    sentinel = tmp_path / "sentinel"
+    sentinel.write_bytes(b"old")
+    before = check._file_hashes(tmp_path)
+    sentinel.write_bytes(b"new")
+    after = check._file_hashes(tmp_path)
+    assert before != after
+    assert check._cancellation_changes(tmp_path, before, after)["unexpected_file_changes"] == ["sentinel"]
+    sentinel.unlink()
+    assert check._cancellation_changes(tmp_path, after, {})["unexpected_file_changes"] == ["sentinel"]
+
+
+def test_unknown_explorer_database_not_allowlisted(tmp_path):
+    path = str(Path("userprofile/AppData/Local/Microsoft/Windows/Explorer/user.sqlite3"))
+    facts = check._cancellation_changes(tmp_path, {}, {path: "new"})
+    assert facts["owned_data_settings_and_existing_files_unchanged"] is False
+    assert facts["known_explorer_cache_changes"] == []

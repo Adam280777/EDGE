@@ -1,0 +1,62 @@
+{
+  "status": "proposed_not_downloaded_not_runtime_verified",
+  "rights_scope": "MIT source and model-card license declarations established as published; not evidence of training-data coverage, performance or incoming financial-data acceptance",
+  "source": {
+    "repository": "https://github.com/shiyu-coder/Kronos",
+    "commit": "67b630e67f6a18c9e9be918d9b4337c960db1e9a",
+    "license_url": "https://raw.githubusercontent.com/shiyu-coder/Kronos/67b630e67f6a18c9e9be918d9b4337c960db1e9a/LICENSE",
+    "license_text_sha256": "acb2d194d378204e5f2be4dcd24d39ecac437903620c790c3315a96dab388fdc",
+    "requirements_text_sha256": "b68eaa2f945d6a5726e3642ce5d6c82014b33a09c3c1bd6302f2c530db22593e",
+    "selected_core_source_bytes": 53971,
+    "license_bytes": 1062,
+    "selected_core_source_size_evidence": "GitHub immutable tree blob sizes, not source archive download",
+    "selected_core_paths": ["model/__init__.py", "model/kronos.py", "model/module.py"]
+  },
+  "required_weights_and_configs_bytes": 32283678,
+  "models": [
+    {
+      "repository": "NeoQuasar/Kronos-mini",
+      "revision": "f4e68697d9d5aed55cef5c96aabc3376bcad9f81",
+      "license": "mit",
+      "metadata_url": "https://huggingface.co/api/models/NeoQuasar/Kronos-mini/revision/f4e68697d9d5aed55cef5c96aabc3376bcad9f81?blobs=true",
+      "readme_bytes": 8841,
+      "readme_sha256": "73fccc29fd1cda62e7e2b0467c0d2b6f5b551b46a4f4cac0c7bca51c0a0b4697",
+      "files": [
+        {
+          "name": "model.safetensors",
+          "bytes": 16440776,
+          "sha256": "a7d5f37e2e9fbd9891f7d7d4f72574512dd1f704fee14223e0a8cd0fbf54197c",
+          "evidence": "Hub_LFS_metadata_only_not_payload_verification"
+        },
+        {
+          "name": "config.json",
+          "bytes": 225,
+          "sha256": "70daca2cb11e3a979dd6b8ac12ee08e2aace877acf28f5b8dfb4fe5609736201",
+          "evidence": "retrieved_small_public_configuration"
+        }
+      ]
+    },
+    {
+      "repository": "NeoQuasar/Kronos-Tokenizer-2k",
+      "revision": "26966d0035065a0cae0ebad7af8ece35bc1fb51c",
+      "license": "mit",
+      "metadata_url": "https://huggingface.co/api/models/NeoQuasar/Kronos-Tokenizer-2k/revision/26966d0035065a0cae0ebad7af8ece35bc1fb51c?blobs=true",
+      "readme_bytes": 8861,
+      "readme_sha256": "4fedbedb718884f0bb39182511a000e37b298440743817b0458bf6666263ef70",
+      "files": [
+        {
+          "name": "model.safetensors",
+          "bytes": 15842376,
+          "sha256": "b97ec46b3b72160509e289183eaf7bdf5f0dac5bb9b49522f6d46638a99a8717",
+          "evidence": "Hub_LFS_metadata_only_not_payload_verification"
+        },
+        {
+          "name": "config.json",
+          "bytes": 301,
+          "sha256": "0b30a443affb03e05a876a083857de9164f899feb7b4d261da02c485c9a3e3b6",
+          "evidence": "retrieved_small_public_configuration"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# Proposed isolated Windows x64 CPython 3.12 allocation worker.
+# No optional mixed-integer/commercial solvers. No installation authorized yet.
+skfolio==1.12.5

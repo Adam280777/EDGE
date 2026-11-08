@@ -26,11 +26,12 @@ MAX_STARTER_RANGE_DAYS = 5 * 366
 MAX_PROVIDER_CALLS = 4
 MAX_PROVIDER_RECORDS = 5_000
 MAX_ACTION_RECORDS = 1_000
-# Reviewed documentation, not proof of equity /full field adjustment semantics
-# or provider observation/publication timestamps. Shared FAQs are indirect.
+# Reviewed equity /full documentation classifies close fields only, not
+# independently verified provider rows, whole OHLC or publication timestamps.
+# Public documentation reviewed 2026-11-07; linked equity adjustment article
+# displays publication/update date 2026-03-31. No live response validation.
 FMP_BASIS_SOURCES = (
     "https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full",
-    "https://site.financialmodelingprep.com/developer/docs/stable/index-historical-price-eod-light",
     "https://site.financialmodelingprep.com/how-to/fmp-historical-price-apis-from-light-charts-to-dividendadjusted-analysis",
 )
 _MISSING_TEXT = frozenset({"", "none", "null", "nan", "nat"})
@@ -317,7 +318,10 @@ class MarketDataProvenance:
     user_rights_declaration: str
     action_coverage: str
     price_basis_sources: tuple[str, ...] = FMP_BASIS_SOURCES
-    price_basis_evidence: str = "insufficient_endpoint_specific_adjustment_evidence"
+    price_basis_evidence: str = (
+        "documentary_close_fields_only_not_provider_verified;"
+        "reviewed=2026-11-07;equity_article_updated=2026-03-31"
+    )
     action_coverage_sources: tuple[str, ...] = (
         "https://site.financialmodelingprep.com/developer/docs/stable/splits-company",
         "https://site.financialmodelingprep.com/developer/docs/stable/dividends-company",
@@ -893,7 +897,7 @@ def normalize_snapshot(
         ),
     )
     warnings = [
-        "Research-only: equity /full close, whole OHLC, volume and VWAP adjustment bases remain unknown; endpoint-specific evidence is insufficient.",
+        "Research-only: equity /full documentation identifies close as split-adjusted and present adjClose as split-and-dividend-adjusted; provider rows are not independently verified. Whole OHLC, volume and VWAP bases remain unknown.",
         "Corporate-action response coverage is unverified; returned events are not proof of completeness.",
         "No exchange calendar or expected-session reconciliation was applied to the returned history.",
         "Daily EOD history is not real-time; provider publication/as-of timestamp was unavailable.",
@@ -1155,15 +1159,14 @@ def _normalize_bars(
                 vwap=vwap,
                 adjusted_close=adjusted_close,
                 adjusted_close_basis=(
-                    # Stable /full does not document this optional field. The
-                    # same adjClose name is used by /non-split-adjusted: do not
-                    # import legacy semantics from the field name or FAQ alone.
-                    "unknown"
+                    # Endpoint-specific documentary classification only; do not
+                    # fabricate absent values or apply this to other endpoints.
+                    "split_and_dividend_adjusted"
                     if adjusted_close is not None
                     else "unavailable"
                 ),
                 ohlc_adjustment_basis="unknown",
-                close_adjustment_basis="unknown",
+                close_adjustment_basis="split_adjusted",
             )
         )
     bars.sort(key=lambda bar: bar.session_date)

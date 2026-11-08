@@ -23,3 +23,15 @@ data/
 *.egg-info/
 build/
 dist/
+# Owned research downloads, model payloads and machine-specific audit output.
+scripts/research/downloads/
+scripts/research/temp/
+scripts/research/model-cache/*/model.safetensors
+scripts/research/model-cache/*/config.json
+scripts/research/*.json
+!scripts/research/kronos-artifacts.json
+!scripts/research/kronos-payload-verification.json
+scripts/research/python31216-SHA256SUMS
+scripts/research/fulcio*.crt.pem
+scripts/research/rekor.pub
+requirements/*.report.json

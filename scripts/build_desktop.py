@@ -16,6 +16,41 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+RESEARCH_RESOURCES = (
+    "qlib_worker.py", "skfolio_worker.py", "kronos_worker.py", "worker_protocol.py",
+    "kronos-artifacts.json", "kronos-payload-verification.json",
+    "vendor/kronos/model/__init__.py", "vendor/kronos/model/kronos.py",
+    "vendor/kronos/model/module.py", "vendor/kronos/LICENSE", "vendor/kronos/NOTICE.txt",
+)
+RESEARCH_NOTICES = (
+    "model-cache/Kronos-mini/README.md",
+    "model-cache/Kronos-Tokenizer-2k/README.md",
+)
+
+
+def stage_research_resources(source: Path, destination: Path) -> None:
+    """Only fixed isolated-worker resources; never wheels, envs, weights or logs.
+
+    Python source is intentional here: external attested CPython 3.12 executes
+    these fixed bootstrap files in isolated mode. It cannot use the 3.13 PYZ.
+    """
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    for relative in RESEARCH_RESOURCES:
+        path = source / relative
+        if not path.is_file() or path.is_symlink():
+            raise RuntimeError("Missing or redirected fixed research resource.")
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+    for relative in RESEARCH_NOTICES:
+        path = source / relative
+        if not path.is_file() or path.is_symlink():
+            raise RuntimeError("Missing or redirected research model notice.")
+        target = destination / "notices" / Path(relative).parent.name / path.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
 
 
 def prepare() -> None:
@@ -32,6 +67,7 @@ def prepare() -> None:
     staging = ROOT / "build" / "desktop-staging"
     staging.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "app.py", staging / "desktop_dashboard.py")
+    stage_research_resources(ROOT / "scripts" / "research", staging / "research")
     notices = staging / "licenses"
     if notices.exists():
         shutil.rmtree(notices)

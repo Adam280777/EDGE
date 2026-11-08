@@ -1,0 +1,3 @@
+# Proposed isolated Windows x64 CPython 3.12 worker. Not desktop dependencies.
+# Resolve wheel-only with --dry-run --ignore-installed; do not install yet.
+pyqlib==0.9.7

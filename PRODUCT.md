@@ -18,6 +18,9 @@ There is no hosted web product, direct browser-launch mode, or browser fallback;
 
 The primary user is a UK-based retail investor researching companies and making
 their own investment decisions.
+This is a private single-user personal-research product. Public customers,
+multiuser display, commercial redistribution and autonomous execution are
+non-goals, not requirements imposed on private financial calculations.
 
 ## Product Purpose
 
@@ -41,6 +44,39 @@ responsible for decisions and broker execution.
 
 ## Capabilities and Constraints
 
+- Current source adds manual FIFO portfolio accounting, GBP reporting with
+  separate GBP/USD cash, explicit opening holdings, US/UK declarations and
+  explicit GBp/GBP units. Missing inputs produce incomplete/blocked results.
+- Structured research/scenarios, transparent manual discovery and saved plans
+  remain declaration-based; they do not certify imported vendor observations.
+  Risk is disabled until the user configures and confirms it; only long-only
+  whole-share plans are supported, with explicit fees/cash/FX assumptions.
+- Local monitoring requires session opt-in while EDGE is open and the Alerts
+  task is active. Navigation revokes it. No rules, targets or holdings change
+  automatically; no background catch-up/provider work is implied.
+- Separate application bundles cover five user-owned databases and non-secret
+  settings, restoring only to an absent separate root. Cooperative consistency
+  is not authenticity or financial/source acceptance; journal archives retain
+  their original journal-only format.
+- Source/native capture checks are not certification of the current executable.
+  Actual native selected-file/recovery flows and final frozen acceptance remain
+  pending. All intended market-data/research integrations must meet the user's
+  production-readiness requirement before finalization.
+- FMP official evidence supports private personal API use. Cache/retention/
+  persistent derived-use terms remain genuinely conflicting; redistribution is
+  excluded, not a gate against private arithmetic. Adjustment/action/calendar/
+  PIT/UK coverage evidence is independently required. Current provider policy
+  has not been relaxed by these documentation updates.
+- Canonical installed Python 3.12 Qlib/skfolio/Kronos runtimes now have
+  owner-reported real synthetic smoke results and local version/hash consistency
+  evidence. These do not establish independent frozen UI/production acceptance
+  or real-market research validity. Kronos cold-start timeout reliability remains
+  recorded historically; repaired Python 3.12.16 canonical and frozen headless
+  synthetic checks have passed within their measured scope. Actual frozen
+  research UI/cancel/window-close acceptance remains pending. First-party
+  Vibe-inspired templates are concept-only guidance,
+  not an installed upstream runtime; Nautilus is the sole simulation authority.
+
 - The first implemented surface is a local, simulation-only NautilusTrader
   acceptance workbench using explicitly synthetic data.
 - Native Workspace navigation also exposes explicit opt-in SEC filing metadata
@@ -62,8 +98,9 @@ responsible for decisions and broker execution.
 - The initial data contract rejects real market data until source rights,
   identity, timestamps, currency and units, freshness, and corporate-action
   handling have an explicit acceptance path.
-- No live broker, real-money trading, paid data connection, or autonomous order
-  execution is enabled.
+- No live broker, real-money trading or autonomous order execution is enabled.
+  Explicit FMP research uses the user's existing subscription; no new paid
+  service purchase or automatic provider activity is authorized.
 - Financial calculations must be deterministic and tested; AI is not their
   source of truth.
 - External data providers should remain replaceable, and missing or stale data
@@ -80,8 +117,9 @@ responsible for decisions and broker execution.
   fixture-run evidence.
 - The approved EDGE master architecture reference in the user-scoped
   `edge-master-architecture` canvas.
-- No validated real-market dataset, market-data entitlement, performance claim,
-  or investment track record is available; none should be fabricated.
+- A prior user-reported FMP sample and official personal API-use documentation
+  do not establish complete market datasets, UK/action/PIT coverage or a
+  performance track record; none should be fabricated.
 
 ## Product Principles
 

@@ -238,8 +238,8 @@ def test_fmp_fetch_returns_research_only_snapshot_and_provenance(
     ]
     assert result.bars[0].ohlc_adjustment_basis == "unknown"
     assert result.bars[0].adjusted_close == Decimal("103.5")
-    assert result.bars[0].adjusted_close_basis == "unknown"
-    assert result.bars[0].close_adjustment_basis == "unknown"
+    assert result.bars[0].adjusted_close_basis == "split_and_dividend_adjusted"
+    assert result.bars[0].close_adjustment_basis == "split_adjusted"
     assert result.actions == (
         CorporateAction(
             date(2024, 1, 3), "split", 2, 1, None, None, "USD", None, None, None
@@ -945,15 +945,16 @@ def test_indirect_documentation_does_not_establish_equity_full_field_basis():
     """Synthetic /full shape, not a recorded or reconstructed market response."""
     result = normalize_snapshot(payload_request(), make_payload(), config=MarketDataConfig())
     observed = result.bars[0]
-    assert observed.close_adjustment_basis == "unknown"
+    assert observed.close_adjustment_basis == "split_adjusted"
     assert observed.ohlc_adjustment_basis == "unknown"
     assert observed.volume_adjustment_basis == "unknown"
     assert observed.vwap_adjustment_basis == "unknown"
-    # FMP's shared FAQ is not endpoint-specific evidence for an extra adjClose.
+    # Equity /full documentary semantics do not verify the synthetic rows.
     assert observed.adjusted_close == Decimal("103.5")
-    assert observed.adjusted_close_basis == "unknown"
+    assert observed.adjusted_close_basis == "split_and_dividend_adjusted"
     assert result.provenance.price_basis_evidence == (
-        "insufficient_endpoint_specific_adjustment_evidence"
+        "documentary_close_fields_only_not_provider_verified;"
+        "reviewed=2026-11-07;equity_article_updated=2026-03-31"
     )
     assert result.provenance.price_basis_sources
     assert result.provenance.action_coverage_sources

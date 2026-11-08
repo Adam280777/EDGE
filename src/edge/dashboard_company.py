@@ -190,7 +190,10 @@ def _company_view(
 ) -> None:
     st.subheader("Company view · local notes only")
     if not items:
-        st.info("Add a user-declared company to create a local company view.")
+        st.info("No saved company notes. Open Watchlist to add a user-declared company.")
+        def open_watchlist():
+            st.session_state[f"{key}_workspace"] = "Watchlist"
+        st.button("Go to Watchlist", key=f"{key}_empty_watchlist", on_click=open_watchlist)
         return
     labels = {
         item.watchlist_id: f"Company entry {index}"

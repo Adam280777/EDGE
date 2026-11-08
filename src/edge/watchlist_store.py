@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from edge.application_storage_lock import StorageLockError, storage_write_lock
 from edge.watchlist import (
     WatchlistDraft,
     WatchlistEntry,
@@ -196,10 +197,14 @@ class WatchlistStore:
             draft.notes,
             draft.horizon,
         )
-        if not self._exists() and self._initialize(parameters):
-            return entry
-        with self._connect(write=True) as connection:
-            connection.execute(_INSERT, parameters)
+        try:
+            with storage_write_lock(self.root.parent):
+                if not self._exists() and self._initialize(parameters):
+                    return entry
+                with self._connect(write=True) as connection:
+                    connection.execute(_INSERT, parameters)
+        except StorageLockError:
+            raise WatchlistStorageError(_STORAGE_MESSAGE) from None
         return entry
 
     def list_entries(

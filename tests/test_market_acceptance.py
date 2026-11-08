@@ -137,7 +137,7 @@ def test_structured_observations_are_snapshot_scoped_and_immutable(snapshot):
     assert dict(gate(report, "freshness").observations) == {
         "reported_publication_time": None, "retrieval_lag_calendar_days": 1,
     }
-    assert dict(gate(report, "price_basis").observations)["close_adjustment_basis"] == "unknown"
+    assert dict(gate(report, "price_basis").observations)["close_adjustment_basis"] == "split_adjusted"
     coverage = dict(gate(report, "action_coverage").observations)
     assert coverage["split_returned_count"] == 0
     assert coverage["split_completeness"] == "unverified"

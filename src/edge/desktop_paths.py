@@ -13,7 +13,9 @@ def local_app_root() -> Path:
     """Return the Windows per-user application root, never the distribution folder."""
     location = os.environ.get("LOCALAPPDATA")
     if not location or not Path(location).is_absolute():
-        raise RuntimeError("Windows LOCALAPPDATA is unavailable; EDGE cannot select safe storage.")
+        raise RuntimeError(
+            "Windows LOCALAPPDATA is unavailable; EDGE cannot select safe storage."
+        )
     return Path(location) / "EDGE"
 
 
@@ -23,6 +25,25 @@ def activate_packaged_data_root() -> Path:
     if not getattr(sys, "frozen", False):
         raise RuntimeError("Desktop storage injection requires the bundled executable.")
     _desktop_data_root = local_app_root() / "data"
+    return _desktop_data_root
+
+
+def activate_diagnostic_data_root(root: Path) -> Path:
+    """Authenticated diagnostic child only; never a production path override."""
+    import tempfile
+
+    global _desktop_data_root
+    if (
+        not getattr(sys, "frozen", False)
+        or not root.is_absolute()
+        or root.parent.resolve() != Path(tempfile.gettempdir()).resolve()
+        or not root.name.startswith("EDGE-research-check-")
+        or not root.is_dir()
+        or root.is_symlink()
+        or Path.cwd().parent != root / "runtime"
+    ):
+        raise RuntimeError("Invalid internally owned diagnostic profile.")
+    _desktop_data_root = root / "application" / "data"
     return _desktop_data_root
 
 

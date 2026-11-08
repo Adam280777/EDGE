@@ -1,0 +1,6 @@
+# Proposed CPython 3.12 Windows x64 wheel lock. NOT installed or runtime-accepted.
+# Re-resolve target interpreter markers before approval/install.
+# Direct public URLs and hashes avoid index substitutions.
+--only-binary=:all:
+--require-hashes
+pyqlib @ https://files.pythonhosted.org/packages/a1/df/c3bb02726eda61b9711e7a3a21e1a1a43102c8d97fcd86d52ba75c1b1a49/pyqlib-0.9.7-cp312-cp312-win_amd64.whl --hash=sha256:dfbee9f0f3005fe805798e2a21c73b198272f1341d5f0d7771e127166faac08e

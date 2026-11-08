@@ -13,9 +13,24 @@ root = Path(SPECPATH)
 stage = root / "build" / "desktop-staging"
 datas = [
     (str(stage / "licenses"), "licenses"),
+    (str(stage / "research"), "research"),
 ]
 binaries = []
-hiddenimports = ["desktop_dashboard", "edge.desktop_splash", "tkinter", "tkinter.ttk"]
+hiddenimports = [
+    "desktop_dashboard", "edge.desktop_splash", "tkinter", "tkinter.ttk",
+    "edge.portfolio", "edge.portfolio_store", "edge.decision_contracts",
+    "edge.decision_store", "edge.trade_planning", "edge.research_workflows",
+    "edge.discovery", "edge.monitoring", "edge.monitoring_store",
+    "edge.application_backup", "edge.application_storage_lock",
+    "edge.dashboard_portfolio", "edge.dashboard_decisions",
+    "edge.dashboard_discovery", "edge.dashboard_monitoring",
+    "edge.dashboard_application_backup", "edge.dashboard_manual_csv",
+    "edge.native_dialogs_manual", "edge.data.manual_observations",
+    "edge.data.research_readiness",
+    "edge.dashboard_research_lab", "edge.research_templates",
+    "edge.research_workers", "edge.desktop_research_job",
+    "edge.portfolio_optimization", "edge.desktop_research_check",
+]
 for package in ("streamlit", "nautilus_trader", "openbb_core", "openbb_sec", "webview"):
     datas += collect_data_files(package, include_py_files=False)
     binaries += collect_dynamic_libs(package)

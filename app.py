@@ -21,8 +21,48 @@ RECENT_RUN_KEY = "edge_recent_run"
 READ_ERRORS = (EdgeError, OSError, sqlite3.Error, json.JSONDecodeError)
 WORKSPACES = (
     "Engine acceptance", "SEC filing research", "Research journal",
-    "Backup and recovery", "Provider settings", "Company watchlist",
+    "Company watchlist", "Research / decisions", "Discovery", "Research lab",
+    "Manual portfolio", "Monitoring", "Backup and recovery", "Application recovery", "Provider settings",
 )
+WORKSPACE_GROUPS = {
+    "Engine acceptance": "Evidence",
+    "SEC filing research": "Research",
+    "Research journal": "Research",
+    "Company watchlist": "Research",
+    "Research / decisions": "Research",
+    "Discovery": "Research",
+    "Research lab": "Research",
+    "Manual portfolio": "Holdings",
+    "Monitoring": "Holdings",
+    "Backup and recovery": "System",
+    "Provider settings": "System",
+    "Application recovery": "System",
+}
+WORKSPACE_LABELS = {
+    "Engine acceptance": "Evidence / Engine",
+    "SEC filing research": "Research / SEC",
+    "Research journal": "Research / Journal",
+    "Company watchlist": "Research / Watchlist",
+    "Research / decisions": "Research / Decisions",
+    "Discovery": "Research / Discovery",
+    "Research lab": "Research / Lab",
+    "Manual portfolio": "Holdings / Portfolio",
+    "Monitoring": "Holdings / Monitoring",
+    "Backup and recovery": "System / Recovery",
+    "Provider settings": "System / Providers",
+    "Application recovery": "System / Bundle recovery",
+}
+
+
+def _stop_monitoring(output_dir: Path) -> None:
+    if st.session_state.get("edge_workspace") != "Research lab":
+        from edge.dashboard_research_lab import cancel_on_leave
+
+        cancel_on_leave()
+    if st.session_state.get("edge_workspace") != "Monitoring":
+        suffix = str(output_dir.resolve())
+        st.session_state[f"edge_monitor_enabled_{suffix}"] = False
+        st.session_state[f"edge_monitor_active_{suffix}"] = False
 
 
 def _journal_root(default: Path) -> Path:
@@ -97,6 +137,11 @@ html, body {
   background-color: var(--edge-void);
 }
 [data-testid="stHeader"] { background: transparent; }
+[data-testid="stAppDeployButton"] { display: none; }
+[data-baseweb="input"], [data-baseweb="input"] > div,
+[data-baseweb="textarea"], [data-baseweb="select"] > div {
+  border-radius: 0 !important;
+}
 [data-testid="stMainBlockContainer"] {
   max-width: 1600px;
   padding: 2.5rem 1.5rem 1.5rem;
@@ -105,6 +150,16 @@ html, body {
   gap: 0.65rem;
 }
 [data-testid="stColumn"] { min-width: 0; }
+.st-key-edge_workspace [role="radiogroup"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+.st-key-edge_workspace label { min-height: 2rem; }
+.st-key-edge_pane_row > [data-testid="stHorizontalBlock"],
+.st-key-edge_output_row > [data-testid="stHorizontalBlock"] {
+  display: flex;
+}
 .st-key-edge_acceptance, .st-key-edge_fixture,
 .st-key-edge_recent, .st-key-edge_history,
 [data-testid="stForm"],
@@ -140,6 +195,11 @@ html, body {
   font-size: 0.95rem;
   letter-spacing: 0.055em;
   text-transform: uppercase;
+}
+.stApp h3 {
+  font-size: 0.95rem;
+  color: var(--edge-cyan);
+  margin-block: 0.65rem 0.25rem;
 }
 .stApp p, .stApp label, .stApp li, [data-testid="stCaptionContainer"] {
   color: var(--edge-ink);
@@ -266,6 +326,17 @@ a:hover { color: var(--edge-amber); }
 }
 /* Native columns retain reading order; stack panes before their copy gets cramped. */
 @media (max-width: 1050px) {
+  .st-key-edge_pane_row > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"],
+  .st-key-edge_output_row > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"],
+  .st-key-edge_pane_row > [data-testid="stHorizontalBlock"],
+  .st-key-edge_output_row > [data-testid="stHorizontalBlock"] {
+    flex-direction: column;
+  }
+  .st-key-edge_pane_row [data-testid="stColumn"],
+  .st-key-edge_output_row [data-testid="stColumn"] {
+    width: 100%;
+    flex: 1 1 100%;
+  }
   [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_acceptance),
   [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-edge_recent) {
     flex-direction: column;
@@ -283,7 +354,8 @@ a:hover { color: var(--edge-amber); }
   [data-testid="stFormSubmitButton"] > button { min-height: 2.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto !important; }
+  .stButton > button, input, textarea { transition: none !important; }
 }
 """
 
@@ -443,14 +515,28 @@ def main(output_dir: Path | None = None) -> None:
     st.markdown(f"<style>{_TERMINAL_CSS}</style>", unsafe_allow_html=True)
     st.title("EDGE // Research workbench")
     st.caption(
-        "Local synthetic engine acceptance / Optional external SEC metadata / User-authored journal · Live trading disabled"
+        "Local decision support · User-declared research and holdings · Live trading disabled"
     )
     page = st.radio(
         "Workspace",
         list(WORKSPACES),
         horizontal=True,
         key="edge_workspace",
+        format_func=WORKSPACE_LABELS.__getitem__,
+        on_change=_stop_monitoring,
+        args=(output_dir,),
     )
+    st.caption(
+        f"Active: {WORKSPACE_GROUPS[page]} / {page} · "
+        "Production status: unfinished — external integration and real-market acceptance gates remain open."
+    )
+    if page != "Monitoring":
+        st.session_state[f"edge_monitor_enabled_{output_dir.resolve()}"] = False
+        st.session_state[f"edge_monitor_active_{output_dir.resolve()}"] = False
+    if page != "Research lab":
+        from edge.dashboard_research_lab import cancel_on_leave
+
+        cancel_on_leave()
     if page == "SEC filing research":
         from edge.dashboard_sec import render
 
@@ -469,6 +555,18 @@ def main(output_dir: Path | None = None) -> None:
         from edge.dashboard_company import render
 
         render(output_dir)
+    elif page in ("Manual portfolio", "Research / decisions", "Discovery", "Research lab", "Monitoring", "Application recovery"):
+        from importlib import import_module
+
+        module = {
+            "Manual portfolio": "dashboard_portfolio",
+            "Research / decisions": "dashboard_decisions",
+            "Discovery": "dashboard_discovery",
+            "Research lab": "dashboard_research_lab",
+            "Monitoring": "dashboard_monitoring",
+            "Application recovery": "dashboard_application_backup",
+        }[page]
+        import_module(f"edge.{module}").render(output_dir)
     else:
         _workbench(output_dir)
 
@@ -482,7 +580,8 @@ def _workbench(output_dir: Path) -> None:
         "cannot be used as simulation input."
     )
     dataset = demo_dataset()
-    acceptance, fixture = st.columns(2, gap="small")
+    with st.container(key="edge_pane_row"):
+        acceptance, fixture = st.columns(2, gap="small")
     with acceptance, st.container(border=True, key="edge_acceptance"):
         st.header("Engine acceptance")
         ready = False
@@ -597,7 +696,8 @@ def _workbench(output_dir: Path) -> None:
                 "No live mode, broker setup, user risk settings, code execution or uploaded strategy controls."
             )
 
-    recent, history = st.columns(2, gap="small")
+    with st.container(key="edge_output_row"):
+        recent, history = st.columns(2, gap="small")
     with recent, st.container(border=True, key="edge_recent"):
         st.header("Most recent run in this session")
         if RECENT_RUN_KEY not in st.session_state:

@@ -3,6 +3,348 @@
 Equity Discovery & Growth Engine is a local equity-research and decision-support
 application. It is not an autonomous trading bot.
 
+## Current source handoff — 7 November 2026
+
+EDGE is for **one user's private personal investment research**, not public
+customers, multiuser display or commercial redistribution. The source additions
+below are implemented and tested in bounded scopes; the existing executable
+must not be assumed to contain them until rebuilt and independently checked.
+**This is not the final production-ready release.**
+
+- Manual portfolio: explicit opening holdings, FIFO subsequent transactions,
+  fees/corrections and separate GBP/USD cash; GBP reporting. US/USD and UK/GBP
+  identities are user declarations. GBp is an explicit price unit, never cash.
+  Missing/stale price or FX inputs yield incomplete/blocked valuations.
+- Research/decisions: immutable swing/long-term research and plan revisions;
+  deterministic scenarios and transparent manual-fundamental screening.
+  Identity, source dates and claimed-reported figures remain user declarations,
+  not independently verified vendor facts.
+- Risk is disabled until explicitly configured and confirmed. Plans are
+  long-only, whole-share, cost-aware estimates—not orders or stop-fill guarantees.
+  No default risk percentage, silent FX cash exchange or automatic execution.
+- Manual CSV observations are explicit, bounded, all-or-nothing and session-only.
+  A local file does not establish vendor rights or calculation acceptance.
+- Monitoring is opt-in only while EDGE is open and the Monitoring / Alerts
+  task is active. Leaving it revokes opt-in; returning or starting a new session
+  stays off. Checks append explainable local alerts, never alter rules/holdings.
+- Eleven grouped workspaces retain stable underlying navigation values:
+  Engine acceptance, SEC filing research, Research journal, Company watchlist,
+  Research / decisions, Discovery, Manual portfolio, Monitoring, Backup and
+  recovery, Application recovery and Provider settings.
+
+### User-record bundle recovery
+
+The existing journal archive remains **journal-only** and unchanged. The new
+application bundle uses `edge.application_backup.backup_application(app_root,
+archive_path)` and `restore_application(archive_path, absent_app_root)`.
+The layout is `app_root/data` plus `app_root/settings`. Restore refuses even an
+existing empty root, never merges/overwrites active stores and never implicitly
+switches active storage. Native recovery chooses a parent and a new child name.
+
+The default registry covers `research-journal.sqlite3`, `watchlist.sqlite3`,
+`portfolio.sqlite3`, `decisions.sqlite3`, `manual-monitoring.sqlite3` and
+non-secret `settings/provider-v1.json`. Credentials, vendor state, simulation
+evidence and runtime files are excluded. Missing registered stores are explicit;
+unknown SQLite stores fail closed. Bounds, hashes, schema/record/internal-link
+validation and online SQLite snapshots precede no-clobber publication.
+
+`cross_store_consistency_verified=true` means **only a cooperative locked cut
+of the default registered user stores plus settings**. All registered writers
+use `storage_write_lock(app_root)` through checks, commit and publication.
+It does not suspend external SQL/file edits or establish authenticity, market
+identity, provider rights, freshness or financial/production acceptance.
+Custom store registrations remain uncertified. There are no cross-store IDs;
+matching ticker labels are declarations, not referential links.
+
+### Evidence and remaining acceptance
+
+Independent targeted financial/recovery checks: **250 passed, 1 Windows symlink
+privilege skip**. Separate source UI/desktop/import checks: **53 passed**.
+The UI owner reports **72 passed** across its focused workflow tests. Independent
+stable-source rerun passed **93 tests** (those 72 plus 21 financial acceptance
+tests). These overlap the other counts. Changed-Python Ruff passed;
+repository-wide Ruff still has 44 findings. These are overlapping targeted
+runs, not a new full-suite total. The earlier main CI baseline was 1,077 passed,
+1 skipped.
+
+The UI owner reports 22 exact-window native source captures across all eleven
+workspaces at 1440×960 and 960×640, without detected overflow; keyboard focus and
+error states were inspected. **Actual native selected-file CSV and bundle
+save/open/restore flows remain unverified**: the automation could not observe
+the owned file dialog. This is an evidence gap, not proof the dialog is broken.
+Controlled-path AppTests use real parsing/storage/recovery but do not certify
+native file selection. No final frozen executable acceptance is claimed.
+Independent QA also inspected the 22 saved captures and visually reviewed all
+five new minimum-window workspaces. Correct markers/warnings and unchecked
+monitoring were visible without obvious horizontal clipping in captured regions.
+Content below the viewport, complete accessibility and actual native selection
+are not certified by screenshots. Overflow/CDP/focus checks remain UI-owner
+evidence. A full-suite/build run is assigned separately; no result is yet claimed.
+
+### Research environment proposals — not installed
+
+`requirements/research-*.in`, proposed hashed locks/reports/budgets and
+`scripts/research/estimate_budget.py` describe isolated Python 3.12 candidates.
+Selected environment/model/source downloads total **628,895,093 bytes (~629 MB)**,
+excluding Python, datasets, cache and runtime outputs. Installed-size estimates
+are heuristic; an 8 GB free-space planning reserve is not a guarantee.
+At the estimate handoff only Python 3.13 was verified locally. Actual 3.12 marker
+re-resolution, Qlib source builds, imports and model execution were pending.
+No research environment installation or model download had then occurred; one earlier 25 kB
+colorama wheel was fetched for missing metadata-sidecar inspection.
+Subsequent user authorization permits approximately 629 MB of isolated research
+downloads/installations and an official per-user Python 3.12 if needed, with a
+**hard 8 GB additional environment/runtime/model/temp limit**, no changes to
+existing environments or PATH. Provisioning is now assigned; completion,
+measured size, import/model execution and acceptance have not yet been reported.
+Provisioning update: the official per-user Python **3.12.10** installer was
+verified against its published Sigstore digest and valid PSF Authenticode
+signature, then installed without PATH, launcher, association or existing-env
+changes. Three new isolated environments were created. This Windows installer
+predates the later source-only 3.12.16 security release; its security-age
+limitation remains disclosed, not production-certified. The initial target
+skfolio dry-run fetched approximately 84 MB of temporary payload, then deleted
+it; repeated network transfer therefore exceeds the headline download estimate.
+The hard additional disk-use limit remains 8 GB. Package/model acceptance is
+still pending; subsequent steps use a bounded local wheelhouse.
+An initial full-suite invocation reported **1,446 passed, 2 skipped, 1 failed**.
+Independent investigation found inherited `PYTHONPATH=src` made the preserved
+original environment discover the checkout's editable package metadata. The
+failing preservation test passed unchanged with that variable cleared; a clean
+full-suite rerun is pending. This is not a full-suite-green result and does not
+justify weakening the environment-preservation check.
+The build owner subsequently reported a clean invocation with **1,510 passed,
+2 Windows symlink-privilege skips and one OpenBB deprecation warning**, with
+`PYTHONPATH` unset and the preservation assertion unchanged. Research tests were
+added during the run, so this is attributed owner-run evidence, not an immutable
+research/frozen certification. The eleven-route manual RC build is underway;
+isolated research is not integrated into that RC.
+Independent native-picker report review found both bounded selection attempts
+unsuccessful: an owned dialog was observed and a path submitted, but the expected
+path was not returned and UI application was not verified. Owned children exited.
+Passing backend fixture checks are not native selection success. Actual native
+CSV selection-to-apply and bundle save/open/restore-parent acceptance remain
+blocked; no further workaround or relaunch is implied by these results.
+
+Qlib remains research-only with Nautilus as sole simulation authority; skfolio
+proposes targets, not holdings. Kronos remains experimental; selective Vibe
+workflow reuse is still unimplemented. The user requires all intended research
+and market-data integrations to be production-ready before finalization.
+Manual functionality does not satisfy that full-release criterion.
+
+### Current FMP evidence — private use, distinct accuracy gates
+
+Official rendered terms, pricing and stable API documentation were reviewed
+7 November 2026. [Terms](https://site.financialmodelingprep.com/developer/docs/terms-of-service)
+(labelled updated 1 August 2023), §§1.1, 2.1 and 2.2.1 expressly support individual
+personal API use. Commercial/multiuser clearance is not a prerequisite here;
+public redistribution is an excluded non-goal.
+
+Local caching/retention and persistent derived research remain **unresolved,
+not categorically forbidden**: broad copy/download/derivative wording conflicts
+with intended API functionality, retained-report language and termination/cache
+deletion provisions (§§2.2, 5, 6.2–6.3). The linked ADUP returned an official 404.
+Clarification is needed for this precise personal API use—not a blanket lawyer
+or commercial-licence requirement. No financial/provider policy flags were
+changed by this documentation handoff.
+Subsequent narrow source correction now labels FMP EOD/full `close` as
+`split_adjusted`, present optional `adjClose` as `split_and_dividend_adjusted`,
+and missing `adjClose` as unavailable. Evidence is explicitly
+`documentary_close_fields_only_not_provider_verified`; values are unchanged
+and no adjustment is performed. The owner reports 183 targeted tests and scoped
+Ruff passing. Whole OHLC/volume/VWAP and all existing calculation/storage/action/
+calendar/PIT/Nautilus gates remain unchanged. This correction is not in the
+historical CC93 executable and requires the next build/hash.
+
+[Stable EOD/full documentation](https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full)
+explicitly describes `close` as split-adjusted and `adjClose` as split/dividend
+adjusted when present. Missing `adjClose` is never fabricated. Whole OHLC,
+volume/VWAP bases, complete actions/accounting, calendar sessions, historical
+publication/revisions and UK coverage remain separately unaccepted. Starter
+pricing advertises US/up-to-five-year/annual-fundamental coverage; charts/actions/
+FX have limited coverage, not blanket endpoint or UK entitlement. Applicable
+[personal exchange declarations](https://site.financialmodelingprep.com/how-to/what-is-the-user-declaration-form-and-why-do-you-need-to-fill-it-in)
+are separate from plan names and successful HTTP responses.
+
+The prior checkpoint records a user-reported successful MSFT FMP sample (ten
+bars, four HTTP-200 endpoints, zero returned actions), not comprehensive source
+acceptance. The current FMP implementation remains private ephemeral display
+only. Older milestone statements below describe the acceptance at that time;
+this section records newer evidence without silently unlocking calculations,
+storage, backtesting, Nautilus or redistribution.
+
+### Independently checked manual eleven-workspace executable
+
+The manual RC at `dist/EDGE/EDGE.exe`, SHA-256
+`9e339fc076f2f4b6e81069ab221908739ab04d1e8c2a935d13d613ae98617769`,
+was independently checked approximately 15:56–15:57 UTC on 7 November 2026,
+outside the repository with disposable profiles, Windows-only PATH and no
+PYTHONPATH/PYTHONHOME/VIRTUAL_ENV. Self-test and native smoke exited zero:
+synthetic financial/manual CSV/risk/monitoring/bundle checks and all eleven
+workspaces passed their diagnostic scope; owned parent/server processes exited.
+
+The first cancellation run correctly cancelled/reaped all eight native-dialog
+cases but exited one because the broad profile-invariance check detected Windows
+Explorer icon/thumbnail caches. A second run with reports separate from the
+synthetic profiles exited zero, all eight cancellation checks and report-parent
+invariance passed; OS cache effects were retained separately in the evidence.
+No real vault or clipboard was accessed. Neither run proves native selected-file
+CSV application or bundle save/open/restore selection.
+
+Later source adds a twelfth **Research lab** route and first-party editable
+research-template guidance. The latter is concept-only Vibe inspiration, not an
+installed Vibe runtime/source integration or external LLM service. These changes
+are **not in this manual RC hash**. Research-runtime/wrapper/resource integration
+needs a new build/hash and independent frozen acceptance before finalization.
+The later research UI source handoff reports **71 focused tests passed**, with
+scoped Ruff passing, and 24 native source captures of all twelve workspaces at
+the two window sizes. These captures show initial lab controls, not actual
+running/completed experiments. Mock-worker tests cover explicit execution,
+blocked/malformed responses, cancellation, navigation and duplicate-run limits;
+they do not prove canonical-runtime or packaged execution.
+
+Research lab uses fixed synthetic fixture IDs and a bounded 120-second worker
+call after explicit readiness checks. Rendering never starts a worker. Session
+cancellation is requested on navigation; browser-tab closure is not guaranteed
+to cancel immediately, while frozen window-close acceptance remains pending.
+Runtime/hash evidence is labelled consistency evidence, not signed authenticity.
+First-party template questions and completeness checks are editable guidance
+and presence/date checks, not a research score, save gate or Vibe/LLM runtime.
+
+### Canonical research-runtime handoff — 8 November 2026
+
+The provisioning owner reports actual canonical synthetic execution through the
+pre-execution Windows Job transport: Qlib `qlib-linear-three-assets-v1`
+31.51 seconds, skfolio `minimum-variance-three-assets` 10.54 seconds and Kronos
+`kronos-mini-ohlcv-v1` 8.39 seconds. These are synthetic checks, not market
+performance or independently verified frozen UI acceptance.
+
+Fixed environments/models are under `%LOCALAPPDATA%/EDGE/research`; the fixed
+base is `%LOCALAPPDATA%/Programs/EDGE-Research-Python312` (3.12.10). Reported pins
+include pyqlib 0.9.7, skfolio 1.12.5 and CPU torch 2.7.1+cpu; all three `pip check`
+runs passed. Owner-created staging environments were removed after canonical
+verification; original environments were preserved. This is a local desktop
+with installed research runtimes, not a portable all-in-one research bundle.
+
+Evidence: `scripts/research/canonical-final-smoke-results.json`, SHA-256
+`dbd3be601375b424014bbffe1ed2ea8db186cc2fae757b9aafc2bf09e871f89f`;
+fixed `attestation-v1.json`, SHA-256
+`2d194edcd07fa751ae50500595c9bfdc84ae08dfdf36589edaae643473515a6a`.
+`scripts/research/runtime-inventory.json` records execution-resource/model hashes,
+versions and measured sizes. This attestation checks local consistency, not
+signed authenticity or a security boundary.
+
+Final sampled owned logical size was **3,476,887,603 bytes**, below the hard
+8,000,000,000-byte cap; the largest reported earlier sample was 4,997,104,741.
+These samples are not continuous peak-allocation proof. Accounted payload
+transfer was 656,809,404 bytes, excluding metadata/HTTP/public-page traffic—not
+total wire usage. Focused owner tests: 26 passed; scoped Ruff passed.
+
+The original canonical Kronos timeout remains recorded, with measured wall time
+1,927.49 seconds; a bounded retry and final rerun succeeded. Its cause and
+reliable cold-start bound remain **unverified**. Python 3.12.10's age relative to
+later source-only security patches remains disclosed; no security certification
+is claimed. A new twelve-route frozen build, independent actual UI execution,
+resource/runtime refusal checks and cancellation/window-close acceptance are
+still required. Native selected-file/recovery and financial rights, adjustments,
+actions, calendars, PIT and UK coverage remain open. No market gates changed.
+Retained-code classification: that wall interval measures the entire
+`run_synthetic` call, including repeated synchronous attestation hashes before
+Job launch and later cleanup; the initial separate readiness check was excluded.
+The helper's 120-second deadline starts only after launch/assignment/reader
+startup. No phase timestamps were retained, so the overrun cannot be attributed
+to hashing, worker execution, scheduling or cleanup. The implementation does
+**not establish an end-to-end 120-second deadline or prelaunch cancellation**.
+Timeout/responsiveness acceptance stays blocked; warm successes and a timeout
+status alone do not prove timely termination. Future scoped instrumentation and
+independent frozen cold/cancel/timeout checks are required.
+
+### Patched twelve-workspace candidate — 8 November 2026
+
+The newer `dist/EDGE/EDGE.exe` has independently matched SHA-256
+`cc93a36cc44c312e46c75a00076a063aefe8a80c5f2382610b83c8e6fa286008`.
+It supersedes the manual eleven-workspace artifact above. The owner reports a
+stable source suite of **1,563 passed, 2 Windows symlink-privilege skips**, plus
+frozen self-test and twelve-workspace native smoke passing with owned processes
+reaped and disposable data absent. These owner results are distinct from
+independent actual research UI acceptance.
+
+The canonical research base is now **Python 3.12.16**, replacing 3.12.10; the
+earlier installer-age limitation describes the historical runtime, not this
+candidate. Independent QA matched the new base/DLL, three environment Python/
+configuration files and all package METADATA hashes (194 Qlib, 20 skfolio,
+35 Kronos). Local consistency does not establish complete security certification.
+Refreshed attestation SHA-256:
+`7e01280fe6717c79cb1512ca4ffbd85b57fd97fd25bf9040eab18c6602d054b7`.
+The v2 canonical smoke report SHA-256 is
+`f57e8d6cac7516e9bd4dee9eaceec744bc646acc393e89e2a07e2fb56a42e17c`;
+owner source runs passed in 110.202/84.544/55.693 seconds respectively.
+
+One independent actual **frozen headless** `--research-verify` run, outside the
+repository with Windows-only PATH, no secrets/PYTHONPATH and isolated noncanonical
+profile/temp directories, passed all three real synthetic fixtures through the
+Job transport: Qlib 21.619 seconds, skfolio 5.081 and Kronos 10.992. Runtime,
+request hashes and input fixture/panel digests matched. Expired deadline and
+pre-set cancellation returned with no stdout in 0.0011/0.0005 seconds. A
+0.5-second cancellation returned in 0.5878 seconds, with reported cleanup
+0.0774 seconds; empty stdout does not identify its execution phase.
+
+These repaired-path results do not erase the historical 1,927-second timeout or
+other retained elapsed failures, and do not prove universal outermost OS-bootstrap
+timing. **Actual frozen UI experiments, cancellation/navigation and window-close
+lifecycle remain unaccepted**: there is no existing safe process-local data/
+WebView/runtime diagnostic override while preserving canonical research roots.
+Headless verification is not a substitute. A narrowly authorized diagnostic
+and new build/hash, or explicit manual acceptance, is needed; no real user
+stores/vault should be touched to obtain evidence.
+
+Native CSV selected-file application and actual bundle file-selection flows
+also remain unresolved; no further picker automation retry occurred. Personal
+FMP cache/derived-use clarification and separate adjustment/action/calendar/PIT/
+UK accuracy gates remain open. This candidate is tested progress, **not the
+complete production-ready EDGE requested by the user**. No commit/push or new CI
+pass is claimed by this documentation update.
+
+### Latest tested-progress candidate — 8 November 2026
+
+The latest `dist/EDGE/EDGE.exe` SHA-256 is
+`9aaf4dc8486966720e7efb9b0ce5c0ba846b853e28adc19e2bc13ba32076c581`.
+It supersedes the earlier candidates above, includes the narrow documentary
+FMP-field correction, and has matching packaged third-party notices. The owner
+reports **1,569 source tests passed, 2 Windows symlink-privilege skips** after
+the market metadata and runtime-cleanup changes; the subsequent diagnostic-only
+harness change passed 45 targeted tests. The full suite was not rerun after that
+harness-only change.
+
+The approved direct-Research-Lab independent frozen diagnostic exited **2** after
+59.807 seconds, timing out at `engine-select:skfolio`. Actual Qlib completed and
+was accepted by the UI in 27.995 seconds, with matching runtime/request/fixture
+digests and no automatic startup or Streamlit exception. Skfolio/Kronos UI runs
+and cancellation/navigation/window-close-while-running were not reached.
+Generated diagnostic application/data/runtime/WebView roots isolated user data
+while canonical research roots remained fixed; user data stayed absent/unchanged,
+and owned processes/temporary profiles were cleaned.
+
+Earlier diagnostic failures remain evidence: candidate F140… exited 2 after
+17.245 seconds without an attributed stage; candidate 65A… timed out after
+49.285 seconds at the Watchlist route after three routes. Both cleaned their
+owned state. The latest direct-Lab check is **not** an all-twelve-workspace
+acceptance pass, nor does it establish that skfolio itself failed.
+
+Automation is stopped; no further build/retry is planned to chase the harness.
+One consolidated manual check on this candidate remains: skfolio and Kronos
+Research Lab runs; Cancel, navigation cancellation and window close during a run;
+native CSV selection-to-apply and bundle save/open/separate-root restore.
+Earlier source/headless/backend passes do not substitute for these missing UI
+flows. Private FMP retention/derived-use clarification and separate action,
+calendar, PIT and UK data accuracy remain open. Research inventories distinguish
+public artifact hashes from locally built Gym artifacts; hash-shaped/proposed
+locks alone do not prove an independently reproduced build.
+
+This is **tested progress, not final production-ready completion** of every
+requested integration. Commit/push/CI status must be reported separately by the
+publication owner; this documentation records no new publication or CI result.
+
 ## Run EDGE
 
 For normal use, launch **`dist\EDGE\EDGE.exe`** on Windows and keep the complete

@@ -1,0 +1,12 @@
+# Proposed isolated Windows x64 CPython 3.12 CPU-only experimental worker.
+# Exact +cpu version must resolve to the official PyTorch CPU wheel.
+# Resolved lock must pin every transitive version/hash before installation.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.7.1+cpu
+numpy==1.26.4
+pandas==2.2.2
+einops==0.8.1
+huggingface-hub==0.33.1
+matplotlib==3.9.3
+tqdm==4.67.1
+safetensors==0.6.2

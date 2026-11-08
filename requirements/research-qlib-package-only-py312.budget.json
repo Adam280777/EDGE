@@ -1,0 +1,26 @@
+{
+  "pip_report": "research-qlib-package-only-py312.report.json",
+  "target": "Windows_x64_CP312_cross_resolution_not_runtime_verification",
+  "marker_evaluation_caveat": "pip ran under CPython 3.13; some environment markers may follow the resolver host. Re-resolve under actual CPython 3.12 before installation.",
+  "wheel_count": 1,
+  "exact_compressed_download_bytes": 877755,
+  "planning_installed_size_range_bytes": [
+    2633265,
+    7022040
+  ],
+  "installed_size_confidence": "low: compression heuristic, not measured installed size or a hard bound; excludes Python runtime, wheel cache, source checkout, datasets and outputs",
+  "wheels": [
+    {
+      "name": "pyqlib",
+      "version": "0.9.7",
+      "filename": "pyqlib-0.9.7-cp312-cp312-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/a1/df/c3bb02726eda61b9711e7a3a21e1a1a43102c8d97fcd86d52ba75c1b1a49/pyqlib-0.9.7-cp312-cp312-win_amd64.whl",
+      "sha256": "dfbee9f0f3005fe805798e2a21c73b198272f1341d5f0d7771e127166faac08e",
+      "download_bytes": 877755,
+      "size_evidence": "PyPI_release_filename_sha256_and_size_match",
+      "substituted_unhashed_mirror_requires_target_reresolution": false,
+      "declared_license": null,
+      "requires_python": ">=3.8.0"
+    }
+  ]
+}

@@ -427,18 +427,26 @@ def test_two_concurrent_first_saves_preserve_both_entries(
 ) -> None:
     link = storage.os.link
     ready = threading.Barrier(2)
+    publications = []
 
     def competing_link(source: Path, target: Path) -> None:
-        ready.wait(timeout=10)
+        publications.append(target)
         link(source, target)
+
+    def concurrent_create(index: int):
+        # Synchronize before entering the shared write lock, not inside publication:
+        # cooperating first saves must serialize through their existence checks.
+        ready.wait(timeout=10)
+        return store.create(replace(draft, title=f"Concurrent note {index}"))
 
     monkeypatch.setattr(storage.os, "link", competing_link)
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = [
-            executor.submit(store.create, replace(draft, title=f"Concurrent note {i}"))
+            executor.submit(concurrent_create, i)
             for i in range(2)
         ]
         entries = [future.result(timeout=20) for future in futures]
+    assert publications == [store.database]
     assert {row.entry_id for row in store.list_entries()} == {
         entry.entry_id for entry in entries
     }

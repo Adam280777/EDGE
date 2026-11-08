@@ -4,6 +4,11 @@ EDGE integrates upstream software rather than implementing a competing trading
 engine. This document identifies direct dependencies; it is not legal advice or
 an exhaustive transitive dependency inventory.
 
+EDGE's current scope is private single-user personal research, not commercial
+distribution, public customers or multiuser display. External-distribution
+obligations below apply only if that excluded scope changes; they are not
+prerequisites invented for private financial arithmetic.
+
 | Component | Role | Upstream licence |
 |---|---|---|
 | [NautilusTrader 2.0.0rc8](https://github.com/nautechsystems/nautilus_trader/tree/v2.0.0rc8) | Native simulation, orders, risk, account and position infrastructure | [GNU LGPLv3](https://github.com/nautechsystems/nautilus_trader/blob/v2.0.0rc8/LICENSE) |
@@ -34,8 +39,15 @@ changes require compatibility review and tests before updating.
 No rights to financial feeds, exchange data, training datasets or model weights
 are granted by these software licences. OpenBB market-data providers, Qlib,
 skfolio, Kronos and Vibe-Trading integrations have not been adopted by this
-milestone. Their exact versions, provider/model terms and dependencies require
-review before adoption. The Windows lock includes the transitive requirements
+milestone's original acceptance. Subsequent canonical personal research
+environments now have owner-reported installed pyqlib 0.9.7, skfolio 1.12.5 and
+CPU torch 2.7.1+cpu with actual synthetic Qlib/skfolio/Kronos smokes. Published
+inventories and local hashes do not establish signed authenticity, model quality,
+real-market validity or independent frozen production acceptance.
+The later canonical base is Python 3.12.16; independently checked frozen
+headless synthetic execution is not full UI, security or financial acceptance.
+Published MIT source/model-card evidence for selected research artifacts was
+inspected; runtime and financial acceptance remain separate. The Windows lock includes the transitive requirements
 for this optional extra; review the exact installed dependency set before
 external distribution.
 
@@ -58,3 +70,22 @@ obligations. In particular Nautilus LGPL corresponding-source and
 replacement/relinking requirements need release review before sharing externally.
 This unsigned local build contains unmodified upstream dependencies, not an
 externally cleared or signed installer.
+
+## Personal financial-data use
+
+Official FMP rendered terms/pricing/API documentation were reviewed
+7 November 2026. [Terms §§1.1, 2.1, 2.2.1](https://site.financialmodelingprep.com/developer/docs/terms-of-service)
+support individual personal API use. Multiuser/commercial requirements are not
+applied to this private product. Copy/download/derivative and retention versus
+termination/cache-deletion clauses remain genuinely conflicting for local
+storage and persistent derived research; clarification is needed for the precise
+personal use. This is neither a categorical prohibition nor a lawyer prerequisite.
+The linked ADUP returned an official 404. Software licences and successful HTTP
+responses do not settle endpoint/exchange/data-use rights.
+
+Stable EOD/full's documented split-adjusted close is positive field-specific
+evidence, not proof of all OHLC/volume/VWAP bases, complete corporate actions,
+historical availability or UK coverage. Current code remains private ephemeral
+FMP display only; no provider gates changed in this documentation handoff.
+Redistribution remains an excluded non-goal. See README's current evidence
+section for research-budget assumptions and unverified runtime/native flows.

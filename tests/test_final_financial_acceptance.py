@@ -585,11 +585,22 @@ def test_portfolio_recovery_validator_rejects_orphan_internal_reference(
         validate_database(connection)
 
 
-def test_monitoring_opt_in_is_session_only_and_leaving_workspace_disables_it(tmp_path):
+def test_monitoring_opt_in_is_session_only_and_leaving_workspace_disables_it(
+    tmp_path, monkeypatch,
+):
     from streamlit.testing.v1 import AppTest
 
+    from edge import dashboard_monitoring
     from edge.monitoring_store import MonitoringStore
 
+    class FixtureClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return NOW.astimezone(tz) if tz is not None else NOW.replace(tzinfo=None)
+
+    # This test checks session scheduling, not passage of wall-clock time.
+    # Keep the quote and check on one explicit clock; never relax stale-data guards.
+    monkeypatch.setattr(dashboard_monitoring, "datetime", FixtureClock)
     app_root = tmp_path / "application"
     data_root = app_root / "data"
     app_root.mkdir()
